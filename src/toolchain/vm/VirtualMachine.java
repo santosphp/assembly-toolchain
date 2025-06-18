@@ -1,4 +1,4 @@
-package vm;
+package toolchain.vm;
 
 public class VirtualMachine {
 
