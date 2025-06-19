@@ -12,18 +12,38 @@ public class VirtualMachine {
 	public List<Integer> loadFromFile(String filePath) {
 		System.out.println("Loading from: " + filePath + "\n");
 		List<Integer> program = new ArrayList<>();
+		program.add(12); // Read
 		program.add(100);
-		program.add(200);
-		program.add(50);
-		program.add(-1);
+		
+		program.add(12); // Read
+		program.add(101);
+		
+		program.add(3); // LOAD
+		program.add(100);
+		
+		program.add(2); // Add
+		program.add(101);
+		
+		program.add(7); //Store
+		program.add(102);
+		
+		program.add(8); //Write
+		program.add(102);
+		
+		program.add(11); //Stop
+		
 		return program;
 	}
 	
 	public void startSimulation() {
 		
+		System.out.println("Starting execution...");
+		
 		while(cpu.executeInstruction()) {
 			// Execute
 		}
+		
+		System.out.println("Ending execution...");
 	}
 	
 	// Constructor

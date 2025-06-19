@@ -15,6 +15,8 @@ public class Instruction {
 		super();
 		this.opcode = -1;
 		this.operands = new ArrayList<>(2);
+		this.operands.add(0);
+		this.operands.add(0);
 		this.addrMode = -1;
 		this.size = -1;
 	}

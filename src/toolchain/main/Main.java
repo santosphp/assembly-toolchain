@@ -11,7 +11,11 @@ public class Main {
         
         System.out.println(virtualMachine.getCpu().getRegistersState());
         
-        System.out.println(virtualMachine.getCpu().getMemory().getData());
+
+        virtualMachine.loadFromFile("Teste");
+        
+        virtualMachine.startSimulation();
+        
 	}
 
 }

@@ -42,27 +42,27 @@ public class Register {
 	*/
 public class Register {
 
-    private int value;
-    private int size;
-    private String identifier;
+	private int value;
+	private int size;
+	private String identifier;
 
-    public Register(int value, int size, String identifier){
-        this.identifier = identifier;
-        this.size = size;
-        this.value = value;
-    }
+	public Register(int value, int size, String identifier) {
+		this.identifier = identifier;
+		this.size = size;
+		this.value = value;
+	}
 
-    public void loadValues(int value) {
-        int mask = (1 << size) -1;
-        this.value = value & mask;
-    }
+	public void loadValue(int value) {
+		int mask = (1 << size) - 1;
+		this.value = value & mask;
+	}
 
-    public int read() {
-        return value;
-    }
+	public int read() {
+		return value;
+	}
 
-    public String getIdentifier() {
-        return identifier;
-    }
+	public String getIdentifier() {
+		return identifier;
+	}
 
 }
