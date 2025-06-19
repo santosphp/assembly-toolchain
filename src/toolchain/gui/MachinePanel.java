@@ -13,11 +13,12 @@ public class MachinePanel extends JPanel {
 	private static final long serialVersionUID = 1L;
 
 	public MachinePanel() {
-        setBackground(new Color(250, 250, 250));
+        setBackground(new Color(70, 70, 70));
         setLayout(new BorderLayout());
 
         JLabel label = new JLabel("Machine Panel", SwingConstants.CENTER);
-        label.setFont(new Font("SansSerif", Font.BOLD, 24));
+        label.setFont(label.getFont().deriveFont(Font.BOLD, 24));
+
 
         add(label, BorderLayout.CENTER);
     }
