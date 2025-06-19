@@ -7,7 +7,6 @@ public class VirtualMachine {
 	// Attributes
 	private Cpu cpu;
 	private List<Integer> programData;
-	private Instruction currentInstruction;
 	
 	// Methods
 	public List<Integer> loadFromFile(String filePath) {
@@ -22,12 +21,8 @@ public class VirtualMachine {
 	
 	public void startSimulation() {
 		
-		
-		cpu.setRunning(true);
-		while(cpu.isRunning()) {
-			
-			// Executa instrução
-			cpu.executeInstruction(currentInstruction);
+		while(cpu.executeInstruction()) {
+			// Execute
 		}
 	}
 	
@@ -36,7 +31,6 @@ public class VirtualMachine {
 		super();
 		this.programData = loadFromFile(filePath);
 		this.cpu = new Cpu(mop, programData);
-		this.currentInstruction = new Instruction();
 	}
 	
 	// Getters and Setters

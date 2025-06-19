@@ -31,9 +31,16 @@ public class Instruction {
 	public List<Integer> getOperands() {
 		return operands;
 	}
+	public int getOperand(int idx) {
+		return this.operands.get(idx-1);
+	}
 
 	public void setOperands(List<Integer> operands) {
 		this.operands = operands;
+	}
+	
+	public void setOperand(int idx, int value) {
+		this.operands.set(idx-1, value);
 	}
 
 	public int getAddrMode() {
