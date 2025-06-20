@@ -12,31 +12,8 @@ public class VirtualMachine {
 	public List<Integer> loadFromFile(String filePath) {
 		System.out.println("Loading from: " + filePath + "\n");
 		List<Integer> program = new ArrayList<>();
-
-		/*
-		// Programa que lê dois inputs e soma
-		program.add(12); // Read
-		program.add(100);
 		
-		program.add(12); // Read
-		program.add(101);
 		
-		program.add(3); // LOAD
-		program.add(100);
-		
-		program.add(2); // Add
-		program.add(101);
-		
-		program.add(7); //Store
-		program.add(102);
-		
-		program.add(8); //Write
-		program.add(102);
-		
-		program.add(11); //Stop
-		*/
-		
-		/*
 		// Sumbtrai dois Imediatos 
 		program.add(131); // LOAD Im
 		program.add(10);
@@ -51,8 +28,53 @@ public class VirtualMachine {
 		program.add(102);
 		
 		program.add(11); //Stop
-		*/
 
+		// ----------------------------------------------
+		/*
+		// Soma 2 numeros endereçados indiretamente
+		program.add(131); // LOAD Im
+		program.add(10);
+
+		program.add(7); // STORE Dir
+		program.add(100);
+		
+		program.add(131); // LOAD Im
+		program.add(100);
+		
+		program.add(7); // STORE Dir
+		program.add(101);
+		
+
+		program.add(131); // LOAD Im
+		program.add(20);
+
+		program.add(7); // STORE Dir
+		program.add(102);
+		
+		program.add(131); // LOAD Im
+		program.add(102);
+		
+		program.add(7); // STORE Dir
+		program.add(103);
+		
+		
+		program.add(35); // LOAD In
+		program.add(101);
+		
+		program.add(34); // Add In
+		program.add(103);
+		
+		program.add(7); //Store
+		program.add(104);
+		
+		program.add(8); //Write
+		program.add(104);
+		
+		program.add(11); //Stop
+		*/
+		
+		// ----------------------------------------------
+		/*
 		// Conta de 0 a 10 usando BR e BRZERO
 		program.add(131); // LOAD Im
 		program.add(0);
@@ -94,6 +116,7 @@ public class VirtualMachine {
 		program.add(100);
 		
 		program.add(11); //Stop
+		*/
 		
 		return program;
 	}
