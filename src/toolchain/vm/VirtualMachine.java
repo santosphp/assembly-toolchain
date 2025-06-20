@@ -1,6 +1,7 @@
 package toolchain.vm;
 
 import java.util.List;
+import java.util.Scanner;
 import java.util.ArrayList;
 
 public class VirtualMachine {
@@ -12,6 +13,9 @@ public class VirtualMachine {
 	public List<Integer> loadFromFile(String filePath) {
 		System.out.println("Loading from: " + filePath + "\n");
 		List<Integer> program = new ArrayList<>();
+
+		/*
+		// Programa que lê dois inputs e soma
 		program.add(12); // Read
 		program.add(100);
 		
@@ -31,12 +35,28 @@ public class VirtualMachine {
 		program.add(102);
 		
 		program.add(11); //Stop
+		*/
+		
+		
+		program.add(131); // LOAD
+		program.add(100);
+		
+		program.add(130); // Add
+		program.add(101);
+		
+		program.add(7); //Store
+		program.add(102);
+		
+		program.add(8); //Write
+		program.add(102);
+		
+		program.add(11); //Stop
 		
 		return program;
 	}
 	
 	public void startSimulation() {
-		
+
 		System.out.println("Starting execution...");
 		
 		while(cpu.executeInstruction()) {

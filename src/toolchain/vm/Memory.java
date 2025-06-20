@@ -15,16 +15,26 @@ public class Memory {
 	public Memory(List<Integer>data){
 		this.size = 1024;
 		this.word = 16;
-		this.datas = data;
 		this.base = 2;
 		this.limit = 64;
-		this.sp = new Register(0, 16, "SP");
+		this.sp = new Register(2, 16, "SP");
+		datas.add(limit);
+		datas.add(0);
+		
+		while(datas.size() < limit) {
+			datas.add(0);
+		}
+		//this.datas = data;
+		for(int i=0; i<data.size(); i++) {
+			datas.add(data.get(i));
+		}
 		
 		while(datas.size() < size) {
 			datas.add(0);
 		}
-		
+		/*
 		datas.set(base, limit);
+		*/
 	}
 	
 	public int read(int address) {

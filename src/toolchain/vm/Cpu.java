@@ -21,6 +21,8 @@ public class Cpu {
 	public Boolean executeInstruction() {
 		Instruction currentInst = new Instruction();
 		currentInst.setOpcode(memory.read(pc.read()));
+		System.out.println(currentInst.getOpcode());
+		
 		pc.loadValue(pc.read() + 1);
 		
 		System.out.println(pc.read());
@@ -55,13 +57,10 @@ public class Cpu {
 			break;
 			
 		case 0: // BR
-			// Program op1
+			// op1 direto
 			currentInst.setOperand(1, memory.read(pc.read()));
 			pc.loadValue(pc.read() + 1);
 			
-			// op1 direto
-			currentInst.setOperand(1, memory.read(currentInst.getOperand(1)));
-
 			// op1 indireto
 			if(currentInst.getAddrMode() == 2) {
 				currentInst.setOperand(1, memory.read(currentInst.getOperand(1)));
@@ -71,12 +70,9 @@ public class Cpu {
 			break;
 			
 		case 5: // BRNEG
-			// Program op1
+			// op1 direto
 			currentInst.setOperand(1, memory.read(pc.read()));
 			pc.loadValue(pc.read() + 1);
-
-			// op1 direto
-			currentInst.setOperand(1, memory.read(currentInst.getOperand(1)));
 
 			// op1 indireto
 			if(currentInst.getAddrMode() == 2) {
@@ -90,12 +86,9 @@ public class Cpu {
 			break;
 			
 		case 1: //BRPOS
-			// Program op1
+			// op1 direto
 			currentInst.setOperand(1, memory.read(pc.read()));
 			pc.loadValue(pc.read() + 1);
-
-			// op1 direto
-			currentInst.setOperand(1, memory.read(currentInst.getOperand(1)));
 
 			// op1 indireto
 			if(currentInst.getAddrMode() == 2) {
@@ -109,13 +102,10 @@ public class Cpu {
 			break;
 		
 		case 4: //BRZERO
-			// Program op1
+			// op1 direto
 			currentInst.setOperand(1, memory.read(pc.read()));
 			pc.loadValue(pc.read() + 1);
-
-			// op1 direto
-			currentInst.setOperand(1, memory.read(currentInst.getOperand(1)));
-
+			
 			// op1 indireto
 			if(currentInst.getAddrMode() == 2) {
 				currentInst.setOperand(1, memory.read(currentInst.getOperand(1)));
@@ -128,12 +118,9 @@ public class Cpu {
 			break;
 			
 		case 15: //CALL
-			// Program op1
+			// op1 direto
 			currentInst.setOperand(1, memory.read(pc.read()));
 			pc.loadValue(pc.read() + 1);
-
-			// op1 direto
-			currentInst.setOperand(1, memory.read(currentInst.getOperand(1)));
 
 			// op1 indireto
 			if(currentInst.getAddrMode() == 2) {
@@ -149,20 +136,18 @@ public class Cpu {
 			break;
 			
 		case 13: //COPY
-			// Program op1
+			// op1 direto
 			currentInst.setOperand(1, memory.read(pc.read()));
 			pc.loadValue(pc.read() + 1);
-			// Program op2
-			currentInst.setOperand(2, memory.read(pc.read()));
-			pc.loadValue(pc.read() + 1);
-
-			// op1 direto
-			currentInst.setOperand(1, memory.read(currentInst.getOperand(1)));
 
 			// op1 indireto
 			if(currentInst.getAddrMode() == 2) {
 				currentInst.setOperand(1, memory.read(currentInst.getOperand(1)));
 			}
+			
+			// Program op2
+			currentInst.setOperand(2, memory.read(pc.read()));
+			pc.loadValue(pc.read() + 1);
 			
 			// op2 direto
 			if(currentInst.getAddrMode() == 1) {
@@ -203,6 +188,7 @@ public class Cpu {
 			// Program op1
 			currentInst.setOperand(1, memory.read(pc.read()));
 			pc.loadValue(pc.read() + 1);
+			System.out.println(currentInst.getOperand(1));
 
 			// op1 direto
 			if(currentInst.getAddrMode() == 1) {
@@ -256,24 +242,18 @@ public class Cpu {
 			break;
 			
 		case 12: //READ
-			// Program op1
+			// op1 direto
 			currentInst.setOperand(1, memory.read(pc.read()));
 			pc.loadValue(pc.read() + 1);
-
-			// op1 direto
-			currentInst.setOperand(1, memory.read(currentInst.getOperand(1)));
 
 			// op1 indireto
 			if(currentInst.getAddrMode() == 2) {
 				currentInst.setOperand(1, memory.read(currentInst.getOperand(1)));
 			}
+			System.out.println(currentInst.getOperand(1));
 			
 			// CALL Input exception...
-			Scanner tempInput = new Scanner(System.in);
-			System.out.print("Input: ");
-			int inputStream = tempInput.nextInt() & 0xFF;
-			tempInput.nextLine(); // Consume \n
-			tempInput.close();
+			int inputStream = 10 & 0xFF;
 			
 			memory.write(currentInst.getOperand(1), inputStream);
 			
@@ -293,12 +273,9 @@ public class Cpu {
 			return false;
 			
 		case 7: //STORE
-			// Program op1
+			// op1 direto
 			currentInst.setOperand(1, memory.read(pc.read()));
 			pc.loadValue(pc.read() + 1);
-
-			// op1 direto
-			currentInst.setOperand(1, memory.read(currentInst.getOperand(1)));
 
 			// op1 indireto
 			if(currentInst.getAddrMode() == 2) {
@@ -386,31 +363,28 @@ public class Cpu {
 		// 2 indireto 1°
 		// 3 indireto 2º
 		// 4 indireto ambos
-		int addrMode = 0;
+	    boolean imediato = (opcode & 0x80) != 0;
+	    boolean indireto1 = (opcode & 0x20) != 0;
+	    boolean indireto2 = (opcode & 0x40) != 0;
 		
-		if(((opcode & 0x40) == 1) && ((opcode & 0x20) == 1)) {
-			addrMode = 4;
-		}
-		else if((opcode & 0x40) == 1) {
-			addrMode = 3;
-		}
-		else if((opcode & 0x20) == 1) {
-			addrMode = 2;
-		}
-		else if((opcode & 0x80) == 1) {
-			addrMode = 0;
-		}
-		else {
-			addrMode = 1;
-		}
+	    if (indireto1 && indireto2) {
+	        return 4; // indireto ambos
+	    } else if (indireto2) {
+	        return 3; // indireto 2º
+	    } else if (indireto1) {
+	        return 2; // indireto 1°
+	    } else if (imediato) {
+	        return 0; // imediato
+	    } else {
+	        return 1; // direto (trivial)
+	    }
 
-		return addrMode;
 	}
 	
 	// Constructor
 	public Cpu(int mopValue, List<Integer> programData) {
 		super();
-		this.pc = new Register(0, 16, "PC");
+		this.pc = new Register(64, 16, "PC");
 		this.sp = new Register(2, 16, "SP");
 		this.acc = new Register(0, 16, "ACC");
 		this.ri = new Register(0, 16, "RI");
