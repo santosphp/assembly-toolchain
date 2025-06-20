@@ -3,7 +3,6 @@ package toolchain.vm;
 import java.util.List;
 import java.util.Map;
 import java.util.HashMap;
-import java.util.Scanner;
 
 public class Cpu {
 	// Attributes
@@ -16,17 +15,14 @@ public class Cpu {
 	private Register r1;
 	private Register mop;
 	private Memory memory;
-	
+
 	// Methods
 	public Boolean executeInstruction() {
 		Instruction currentInst = new Instruction();
 		currentInst.setOpcode(memory.read(pc.read()));
-		System.out.println(currentInst.getOpcode());
-		
+
 		pc.loadValue(pc.read() + 1);
-		
-		System.out.println(pc.read());
-		
+
 		currentInst.setAddrMode(decodeAdressingMode(currentInst.getOpcode()));
 		ri.loadValue(currentInst.getOpcode() & 0x1F);
 
@@ -35,314 +31,312 @@ public class Cpu {
 		// 2 indireto 1°
 		// 3 indireto 2º
 		// 4 indireto ambos
-		
-		switch(ri.read()) {
+
+		switch (ri.read()) {
 		case 2: // ADD
 			// Program op1
 			currentInst.setOperand(1, memory.read(pc.read()));
 			pc.loadValue(pc.read() + 1);
 
 			// op1 direto
-			if(currentInst.getAddrMode() == 1) {
+			if (currentInst.getAddrMode() == 1) {
 				currentInst.setOperand(1, memory.read(currentInst.getOperand(1)));
 			}
 
 			// op1 indireto
-			if(currentInst.getAddrMode() == 2) {
+			if (currentInst.getAddrMode() == 2) {
 				currentInst.setOperand(1, memory.read(currentInst.getOperand(1)));
 				currentInst.setOperand(1, memory.read(currentInst.getOperand(1)));
 			}
-			
+
 			acc.loadValue(acc.read() + currentInst.getOperand(1));
 			break;
-			
+
 		case 0: // BR
 			// op1 direto
 			currentInst.setOperand(1, memory.read(pc.read()));
 			pc.loadValue(pc.read() + 1);
-			
+
 			// op1 indireto
-			if(currentInst.getAddrMode() == 2) {
+			if (currentInst.getAddrMode() == 2) {
 				currentInst.setOperand(1, memory.read(currentInst.getOperand(1)));
 			}
 
-			pc.loadValue(currentInst.getOperand(1));
+			pc.loadValue(64 + currentInst.getOperand(1));
 			break;
-			
+
 		case 5: // BRNEG
 			// op1 direto
 			currentInst.setOperand(1, memory.read(pc.read()));
 			pc.loadValue(pc.read() + 1);
 
 			// op1 indireto
-			if(currentInst.getAddrMode() == 2) {
+			if (currentInst.getAddrMode() == 2) {
 				currentInst.setOperand(1, memory.read(currentInst.getOperand(1)));
 			}
-			
-			if(acc.read() < 0) {
-				pc.loadValue(currentInst.getOperand(1));
+
+			if (acc.read() < 0) {
+				pc.loadValue(64 + currentInst.getOperand(1));
 			}
-			
+
 			break;
-			
-		case 1: //BRPOS
+
+		case 1: // BRPOS
 			// op1 direto
 			currentInst.setOperand(1, memory.read(pc.read()));
 			pc.loadValue(pc.read() + 1);
 
 			// op1 indireto
-			if(currentInst.getAddrMode() == 2) {
+			if (currentInst.getAddrMode() == 2) {
 				currentInst.setOperand(1, memory.read(currentInst.getOperand(1)));
 			}
-			
-			if(acc.read() > 0) {
-				pc.loadValue(currentInst.getOperand(1));
+
+			if (acc.read() > 0) {
+				pc.loadValue(64 + currentInst.getOperand(1));
 			}
-			
+
 			break;
-		
-		case 4: //BRZERO
-			// op1 direto
-			currentInst.setOperand(1, memory.read(pc.read()));
-			pc.loadValue(pc.read() + 1);
-			
-			// op1 indireto
-			if(currentInst.getAddrMode() == 2) {
-				currentInst.setOperand(1, memory.read(currentInst.getOperand(1)));
-			}
-			
-			if(acc.read() == 0) {
-				pc.loadValue(currentInst.getOperand(1));
-			}
-			
-			break;
-			
-		case 15: //CALL
+
+		case 4: // BRZERO
 			// op1 direto
 			currentInst.setOperand(1, memory.read(pc.read()));
 			pc.loadValue(pc.read() + 1);
 
 			// op1 indireto
-			if(currentInst.getAddrMode() == 2) {
+			if (currentInst.getAddrMode() == 2) {
 				currentInst.setOperand(1, memory.read(currentInst.getOperand(1)));
 			}
-			
+
+			if (acc.read() == 0) {
+				pc.loadValue(64 + currentInst.getOperand(1));
+			}
+
+			break;
+
+		case 15: // CALL
+			// op1 direto
+			currentInst.setOperand(1, memory.read(pc.read()));
+			pc.loadValue(pc.read() + 1);
+
+			// op1 indireto
+			if (currentInst.getAddrMode() == 2) {
+				currentInst.setOperand(1, memory.read(currentInst.getOperand(1)));
+			}
+
 			// Testar pilha...
 			memory.write(sp.read(), pc.read());
 			sp.loadValue(sp.read() + 1);
-			
+
 			pc.loadValue(currentInst.getOperand(1));
-			
+
 			break;
-			
-		case 13: //COPY
+
+		case 13: // COPY
 			// op1 direto
 			currentInst.setOperand(1, memory.read(pc.read()));
 			pc.loadValue(pc.read() + 1);
 
 			// op1 indireto
-			if(currentInst.getAddrMode() == 2) {
+			if (currentInst.getAddrMode() == 2) {
 				currentInst.setOperand(1, memory.read(currentInst.getOperand(1)));
 			}
-			
+
 			// Program op2
 			currentInst.setOperand(2, memory.read(pc.read()));
 			pc.loadValue(pc.read() + 1);
-			
+
 			// op2 direto
-			if(currentInst.getAddrMode() == 1) {
+			if (currentInst.getAddrMode() == 1) {
 				currentInst.setOperand(2, memory.read(currentInst.getOperand(2)));
 			}
 
 			// op2 indireto
-			if(currentInst.getAddrMode() == 3) {
+			if (currentInst.getAddrMode() == 3) {
 				currentInst.setOperand(2, memory.read(currentInst.getOperand(2)));
 				currentInst.setOperand(2, memory.read(currentInst.getOperand(2)));
 			}
-			
+
 			memory.write(currentInst.getOperand(1), currentInst.getOperand(2));
-			
+
 			break;
-			
-		case 10: //DIVIDE
+
+		case 10: // DIVIDE
 			// Program op1
 			currentInst.setOperand(1, memory.read(pc.read()));
 			pc.loadValue(pc.read() + 1);
 
 			// op1 direto
-			if(currentInst.getAddrMode() == 1) {
+			if (currentInst.getAddrMode() == 1) {
 				currentInst.setOperand(1, memory.read(currentInst.getOperand(1)));
 			}
 
 			// op1 indireto
-			if(currentInst.getAddrMode() == 2) {
+			if (currentInst.getAddrMode() == 2) {
 				currentInst.setOperand(1, memory.read(currentInst.getOperand(1)));
 				currentInst.setOperand(1, memory.read(currentInst.getOperand(1)));
 			}
-			
+
 			acc.loadValue(acc.read() / currentInst.getOperand(1));
-			
+
 			break;
-			
-		case 3: //LOAD
+
+		case 3: // LOAD
 			// Program op1
 			currentInst.setOperand(1, memory.read(pc.read()));
 			pc.loadValue(pc.read() + 1);
-			System.out.println(currentInst.getOperand(1));
 
 			// op1 direto
-			if(currentInst.getAddrMode() == 1) {
+			if (currentInst.getAddrMode() == 1) {
 				currentInst.setOperand(1, memory.read(currentInst.getOperand(1)));
 			}
 
 			// op1 indireto
-			if(currentInst.getAddrMode() == 2) {
+			if (currentInst.getAddrMode() == 2) {
 				currentInst.setOperand(1, memory.read(currentInst.getOperand(1)));
 				currentInst.setOperand(1, memory.read(currentInst.getOperand(1)));
 			}
-			
+
 			acc.loadValue(currentInst.getOperand(1));
-			
+
 			break;
-			
-		case 14: //MULT
+
+		case 14: // MULT
 			// Program op1
 			currentInst.setOperand(1, memory.read(pc.read()));
 			pc.loadValue(pc.read() + 1);
 
 			// op1 direto
-			if(currentInst.getAddrMode() == 1) {
+			if (currentInst.getAddrMode() == 1) {
 				currentInst.setOperand(1, memory.read(currentInst.getOperand(1)));
 			}
 
 			// op1 indireto
-			if(currentInst.getAddrMode() == 2) {
+			if (currentInst.getAddrMode() == 2) {
 				currentInst.setOperand(1, memory.read(currentInst.getOperand(1)));
 				currentInst.setOperand(1, memory.read(currentInst.getOperand(1)));
 			}
-			
+
 			acc.loadValue(acc.read() * currentInst.getOperand(1));
-			
+
 			break;
-			
-		case 17: //PUSH ???
-			
+
+		case 17: // PUSH ???
+
 			// Testar pilha...
 			memory.write(sp.read(), acc.read());
 			sp.loadValue(sp.read() + 1);
-			
+
 			break;
-			
-		case 18: //POP ???
-			
+
+		case 18: // POP ???
+
 			// Testar pilha...
 			acc.loadValue(memory.read(sp.read()));
 			sp.loadValue(sp.read() - 1);
-			
+
 			break;
-			
-		case 12: //READ
+
+		case 12: // READ
 			// op1 direto
 			currentInst.setOperand(1, memory.read(pc.read()));
 			pc.loadValue(pc.read() + 1);
 
 			// op1 indireto
-			if(currentInst.getAddrMode() == 2) {
+			if (currentInst.getAddrMode() == 2) {
 				currentInst.setOperand(1, memory.read(currentInst.getOperand(1)));
 			}
-			System.out.println(currentInst.getOperand(1));
-			
+
 			// CALL Input exception...
 			int inputStream = 10 & 0xFF;
-			
+
 			memory.write(currentInst.getOperand(1), inputStream);
-			
+
 			break;
-			
-		case 16: //RET
+
+		case 16: // RET
 
 			// Testar pilha...
 			acc.loadValue(memory.read(sp.read()));
 			sp.loadValue(sp.read() - 1);
-			
+
 			break;
-			
-		case 11: //STOP
+
+		case 11: // STOP
 
 			// Encerramento...
 			return false;
-			
-		case 7: //STORE
+
+		case 7: // STORE
 			// op1 direto
 			currentInst.setOperand(1, memory.read(pc.read()));
 			pc.loadValue(pc.read() + 1);
 
 			// op1 indireto
-			if(currentInst.getAddrMode() == 2) {
+			if (currentInst.getAddrMode() == 2) {
 				currentInst.setOperand(1, memory.read(currentInst.getOperand(1)));
 			}
-			
+
 			memory.write(currentInst.getOperand(1), acc.read());
-			
+
 			break;
-			
-		case 6: //SUB
+
+		case 6: // SUB
 			// Program op1
 			currentInst.setOperand(1, memory.read(pc.read()));
 			pc.loadValue(pc.read() + 1);
 
 			// op1 direto
-			if(currentInst.getAddrMode() == 1) {
+			if (currentInst.getAddrMode() == 1) {
 				currentInst.setOperand(1, memory.read(currentInst.getOperand(1)));
 			}
 
 			// op1 indireto
-			if(currentInst.getAddrMode() == 2) {
+			if (currentInst.getAddrMode() == 2) {
 				currentInst.setOperand(1, memory.read(currentInst.getOperand(1)));
 				currentInst.setOperand(1, memory.read(currentInst.getOperand(1)));
 			}
-			
+
 			acc.loadValue(acc.read() - currentInst.getOperand(1));
-			
+
 			break;
-			
-		case 8: //WRITE
+
+		case 8: // WRITE
 			// Program op1
 			currentInst.setOperand(1, memory.read(pc.read()));
 			pc.loadValue(pc.read() + 1);
 
 			// op1 direto
-			if(currentInst.getAddrMode() == 1) {
+			if (currentInst.getAddrMode() == 1) {
 				currentInst.setOperand(1, memory.read(currentInst.getOperand(1)));
 			}
 
 			// op1 indireto
-			if(currentInst.getAddrMode() == 2) {
+			if (currentInst.getAddrMode() == 2) {
 				currentInst.setOperand(1, memory.read(currentInst.getOperand(1)));
 				currentInst.setOperand(1, memory.read(currentInst.getOperand(1)));
 			}
-			
+
 			// CALL Output exception...
 			System.out.println("Output: " + currentInst.getOperand(1));
-			
+
 			break;
-			
+
 		default:
-			
+
 			System.out.println("Opcode indefinido: " + ri.read());
-			
+
 			return false;
 		}
-		
+
 		// ...
-		
+
 		return true;
 	}
-	
+
 	public void setMop(Integer mop) {
 		this.mop.loadValue(mop);
 	}
-	
+
 	public Map<String, Integer> getRegistersState() {
 		Map<String, Integer> registersState = new HashMap<>();
 		registersState.put(this.pc.getIdentifier(), this.pc.read());
@@ -355,7 +349,7 @@ public class Cpu {
 		registersState.put(this.mop.getIdentifier(), this.mop.read());
 		return registersState;
 	}
-	
+
 	public Integer decodeAdressingMode(Integer opcode) {
 		// Implementation
 		// 0 imediato
@@ -363,24 +357,24 @@ public class Cpu {
 		// 2 indireto 1°
 		// 3 indireto 2º
 		// 4 indireto ambos
-	    boolean imediato = (opcode & 0x80) != 0;
-	    boolean indireto1 = (opcode & 0x20) != 0;
-	    boolean indireto2 = (opcode & 0x40) != 0;
-		
-	    if (indireto1 && indireto2) {
-	        return 4; // indireto ambos
-	    } else if (indireto2) {
-	        return 3; // indireto 2º
-	    } else if (indireto1) {
-	        return 2; // indireto 1°
-	    } else if (imediato) {
-	        return 0; // imediato
-	    } else {
-	        return 1; // direto (trivial)
-	    }
+		boolean imediato = (opcode & 0x80) != 0;
+		boolean indireto1 = (opcode & 0x20) != 0;
+		boolean indireto2 = (opcode & 0x40) != 0;
+
+		if (indireto1 && indireto2) {
+			return 4; // indireto ambos
+		} else if (indireto2) {
+			return 3; // indireto 2º
+		} else if (indireto1) {
+			return 2; // indireto 1°
+		} else if (imediato) {
+			return 0; // imediato
+		} else {
+			return 1; // direto (trivial)
+		}
 
 	}
-	
+
 	// Constructor
 	public Cpu(int mopValue, List<Integer> programData) {
 		super();
@@ -388,7 +382,7 @@ public class Cpu {
 		this.sp = new Register(2, 16, "SP");
 		this.acc = new Register(0, 16, "ACC");
 		this.ri = new Register(0, 16, "RI");
-		this.re = new Register(0, 16, "RE");  // Setado na leitura do arquivo...
+		this.re = new Register(0, 16, "RE"); // Setado na leitura do arquivo...
 		this.r0 = new Register(0, 16, "R0");
 		this.r1 = new Register(0, 16, "R1");
 		this.mop = new Register(mopValue, 16, "MOP");

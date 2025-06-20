@@ -1,7 +1,6 @@
 package toolchain.vm;
 
 import java.util.List;
-import java.util.Scanner;
 import java.util.ArrayList;
 
 public class VirtualMachine {
@@ -37,18 +36,62 @@ public class VirtualMachine {
 		program.add(11); //Stop
 		*/
 		
+		/*
+		// Sumbtrai dois Imediatos 
+		program.add(131); // LOAD Im
+		program.add(10);
 		
-		program.add(131); // LOAD
+		program.add(134); // Sub Im
+		program.add(8);
+		
+		program.add(7); //Store Dir
+		program.add(102);
+		
+		program.add(8); //Write Dir
+		program.add(102);
+		
+		program.add(11); //Stop
+		*/
+
+		// Conta de 0 a 10 usando BR e BRZERO
+		program.add(131); // LOAD Im
+		program.add(0);
+
+		program.add(7); // STORE Dir
 		program.add(100);
 		
-		program.add(130); // Add
+		program.add(131); // LOAD Im
+		program.add(10);
+
+		program.add(7); // STORE Dir
 		program.add(101);
 		
-		program.add(7); //Store
-		program.add(102);
+		program.add(3); // LOAD Dir <---
+		program.add(101);
+
+		program.add(4); // BRZERO Dir
+		program.add(24);
+
+		program.add(134); // SUB Im
+		program.add(1);
+
+		program.add(7); // STORE Dir
+		program.add(101);
 		
-		program.add(8); //Write
-		program.add(102);
+		program.add(3); // LOAD Dir
+		program.add(100);
+		
+		program.add(130); // ADD Im
+		program.add(1);
+		
+		program.add(7); // STORE Dir
+		program.add(100);
+
+		program.add(0); //BR Dir
+		program.add(8);
+		
+		program.add(8); //Write Dir
+		program.add(100);
 		
 		program.add(11); //Stop
 		
