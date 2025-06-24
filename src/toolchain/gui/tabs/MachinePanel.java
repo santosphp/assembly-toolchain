@@ -10,7 +10,6 @@ import toolchain.gui.components.ControlsPanel;
 import toolchain.gui.components.EditorPanel;
 import toolchain.gui.components.IOConsolePanel;
 import toolchain.gui.components.MemoryPanel;
-import toolchain.gui.components.NextInstructionPanel;
 import toolchain.gui.components.RegistersPanel;
 import toolchain.gui.components.StackPanel;
 
@@ -30,7 +29,7 @@ public class MachinePanel extends JPanel {
 	    gbc.weighty = 1.0;
 	    add(new MemoryPanel(), gbc);
 
-	    // Column 2: Editor, NextInstruction and I/O (40% width)
+	    // Column 2: Editor and I/O (40% width)
 	    gbc.gridx = 1;
 	    gbc.weightx = 0.4;
 	    JPanel col2 = new JPanel(new GridBagLayout());
@@ -40,12 +39,8 @@ public class MachinePanel extends JPanel {
 	    gbc2.insets = new Insets(0, 0, 0, 0); // No margins in between components
 
 	    gbc2.gridy = 0;
-	    gbc2.weighty = 0.6;  // 60%
+	    gbc2.weighty = 0.7;  // 70%
 	    col2.add(new EditorPanel(), gbc2);
-
-	    gbc2.gridy = 1;
-	    gbc2.weighty = 0.1;  // 10%
-	    col2.add(new NextInstructionPanel(), gbc2);
 
 	    gbc2.gridy = 2;
 	    gbc2.weighty = 0.3;  // 30%
@@ -53,7 +48,7 @@ public class MachinePanel extends JPanel {
 
 	    add(col2, gbc);
 
-	    // Column 3: Control buttons, Registers and Stack  (30% width)
+	    // Column 3: Control panel, Registers and Stack  (30% width)
 	    gbc.gridx = 2;
 	    gbc.weightx = 0.3;
 	    JPanel col3 = new JPanel(new GridBagLayout());

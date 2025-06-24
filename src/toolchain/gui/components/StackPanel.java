@@ -7,12 +7,17 @@ import javax.swing.JPanel;
 import javax.swing.SwingConstants;
 import javax.swing.border.TitledBorder;
 
+import toolchain.gui.Theme;
+
 public class StackPanel extends JPanel {
     private static final long serialVersionUID = 1L;
 
 	public StackPanel() {
-        setBorder(new TitledBorder("Stack"));
+        setBorder(Theme.createTitledBorder("Stack"));
         setLayout(new BorderLayout());
         add(new JLabel("[Stack]", SwingConstants.CENTER), BorderLayout.CENTER);
+        
+        setBackground(Theme.BACKGROUND);
+        setForeground(Theme.FOREGROUND);
     }
 }

@@ -17,8 +17,8 @@ public class ContentPanel extends JPanel {
     
     public ContentPanel() {
         setLayout(new CardLayout());
-        setBackground(BASE_BACKGROUND);
-        setForeground(BASE_FOREGROUND);
+        setBackground(Theme.BACKGROUND);
+        setForeground(Theme.FOREGROUND);
         
         addTab("Machine", new MachinePanel());
     }
@@ -32,6 +32,7 @@ public class ContentPanel extends JPanel {
         container.setBackground(BASE_BACKGROUND);
         container.setForeground(BASE_FOREGROUND);
         
+        /*
         for (Component comp : container.getComponents()) {
             if (comp instanceof JComponent) {
                 JComponent jcomp = (JComponent) comp;
@@ -44,5 +45,6 @@ public class ContentPanel extends JPanel {
                 }
             }
         }
+        */
     }
 }
