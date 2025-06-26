@@ -93,4 +93,9 @@ public class Memory {
 	    }
 	    System.out.println();
 	}
+
+	public Register getSp() {
+		return sp;
+	}
+	
 }

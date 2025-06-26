@@ -124,8 +124,9 @@ public class Cpu {
 			}
 
 			// Testar pilha...
-			memory.write(sp.read(), pc.read());
-			sp.loadValue(sp.read() + 1);
+			//memory.write(sp.read(), pc.read());
+			//sp.loadValue(sp.read() + 1);
+			memory.push(pc.read());
 
 			pc.loadValue(currentInst.getOperand(1));
 
@@ -223,16 +224,18 @@ public class Cpu {
 		case 17: // PUSH ???
 
 			// Testar pilha...
-			memory.write(sp.read(), acc.read());
-			sp.loadValue(sp.read() + 1);
+			//memory.write(sp.read(), acc.read());
+			//sp.loadValue(sp.read() + 1);
+			memory.push(acc.read());
 
 			break;
 
 		case 18: // POP ???
 
 			// Testar pilha...
-			acc.loadValue(memory.read(sp.read()));
-			sp.loadValue(sp.read() - 1);
+			//acc.loadValue(memory.read(sp.read()));
+			//sp.loadValue(sp.read() - 1);
+			acc.loadValue(memory.pop());
 
 			break;
 
@@ -256,8 +259,10 @@ public class Cpu {
 		case 16: // RET
 
 			// Testar pilha...
-			acc.loadValue(memory.read(sp.read()));
-			sp.loadValue(sp.read() - 1);
+			//acc.loadValue(memory.read(sp.read()));
+			//sp.loadValue(sp.read() - 1);
+			
+			acc.loadValue(memory.pop());
 
 			break;
 
