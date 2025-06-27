@@ -16,7 +16,6 @@ public class Theme {
 
     public static final int BORDER_THICKNESS = 1;
 
-    // Create a reusable titled border factory method instead of fixed border:
     public static TitledBorder createTitledBorder(String title) {
         return BorderFactory.createTitledBorder(
             BorderFactory.createLineBorder(BORDER_COLOR, BORDER_THICKNESS),

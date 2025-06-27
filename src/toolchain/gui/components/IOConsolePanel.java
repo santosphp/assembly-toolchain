@@ -1,7 +1,6 @@
 package toolchain.gui.components;
 
 import java.awt.BorderLayout;
-import java.awt.Color;
 import java.awt.Font;
 
 import javax.swing.BorderFactory;
@@ -9,7 +8,6 @@ import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
 import javax.swing.JTextField;
-import javax.swing.border.TitledBorder;
 
 import toolchain.gui.Theme;
 
@@ -23,7 +21,6 @@ public class IOConsolePanel extends JPanel {
         setBorder(Theme.createTitledBorder("I/O Console"));
         setBackground(Theme.BACKGROUND);
         setForeground(Theme.FOREGROUND);
-
 
         // Output area
         textArea = new JTextArea();
@@ -42,8 +39,8 @@ public class IOConsolePanel extends JPanel {
         area.setEditable(false);
         area.setFont(new Font("Monospaced", Font.PLAIN, 14));
         area.setBackground(Theme.BACKGROUND);
-        area.setForeground(Theme.FOREGROUND);  // Bright green
-        area.setCaretColor(Color.GREEN);
+        area.setForeground(Theme.FOREGROUND);  
+        area.setCaretColor(Theme.FOREGROUND);
         area.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
         area.setLineWrap(true);
     }
@@ -54,12 +51,11 @@ public class IOConsolePanel extends JPanel {
         field.setForeground(Theme.FOREGROUND);
         field.setCaretColor(Theme.FOREGROUND);
         field.setBorder(BorderFactory.createCompoundBorder(
-            BorderFactory.createLineBorder(Theme.FOREGROUND, 1), // darker green
+            BorderFactory.createLineBorder(Theme.FOREGROUND, 1),
             BorderFactory.createEmptyBorder(5, 5, 5, 5)
         ));
     }
     
-    // Public methods for console operations
     public void appendOutput(String text) {
         textArea.append(text + "\n");
         textArea.setCaretPosition(textArea.getDocument().getLength());

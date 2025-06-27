@@ -5,9 +5,9 @@ import java.awt.BorderLayout;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.SwingConstants;
-import javax.swing.border.TitledBorder;
 
 import toolchain.gui.Theme;
+import toolchain.vm.VirtualMachine;
 
 public class RegistersPanel extends JPanel {
     private static final long serialVersionUID = 1L;
@@ -20,4 +20,9 @@ public class RegistersPanel extends JPanel {
         setBackground(Theme.BACKGROUND);
         setForeground(Theme.FOREGROUND);
     }
+
+	public void refresh(VirtualMachine vm) {
+		// TODO Auto-generated method stub
+		
+	}
 }

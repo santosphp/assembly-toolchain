@@ -1,27 +1,26 @@
 package toolchain.gui.components;
 
 import java.awt.BorderLayout;
-import java.awt.Color;
 import java.awt.Font;
 
 import javax.swing.BorderFactory;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
-import javax.swing.border.TitledBorder;
 
 import toolchain.gui.Theme;
 
 public class EditorPanel extends JPanel {
     private static final long serialVersionUID = 1L;
-
-	public EditorPanel() {
+    private JTextArea textArea;
+    
+	public EditorPanel() {		
         setLayout(new BorderLayout());
         setBorder(Theme.createTitledBorder("Editor"));
         setBackground(Theme.BACKGROUND);
         setForeground(Theme.BACKGROUND);
         
-        JTextArea textArea = new JTextArea();
+        textArea = new JTextArea();
         styleTerminalOutput(textArea);
         JScrollPane scrollPane = new JScrollPane(textArea);
         scrollPane.setBorder(null);
@@ -36,4 +35,8 @@ public class EditorPanel extends JPanel {
         area.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
         area.setLineWrap(true);
     }
+
+	public String getCode() {
+		return textArea.getText();
+	}
 }
