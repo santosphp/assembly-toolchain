@@ -2,6 +2,7 @@ package toolchain.gui.components;
 
 import java.awt.BorderLayout;
 import java.awt.Font;
+import java.util.function.Consumer;
 
 import javax.swing.BorderFactory;
 import javax.swing.JPanel;
@@ -70,4 +71,15 @@ public class IOConsolePanel extends JPanel {
         inputField.setText("");
         return input;
     }
+    
+    public void setOnInputSubmitted(Consumer<String> callback) {
+        inputField.addActionListener(e -> {
+            String input = inputField.getText().trim();
+            inputField.setText("");
+            if (!input.isEmpty()) {
+                callback.accept(input);
+            }
+        });
+    }
+
 }

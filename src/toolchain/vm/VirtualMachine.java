@@ -1,18 +1,29 @@
 package toolchain.vm;
 
+import java.util.LinkedList;
 import java.util.List;
+import java.util.Queue;
 
+import toolchain.vm.cpu.CPU;
 import toolchain.vm.vmlistener.VMListener;
 
 public class VirtualMachine {
-
+	
+	private final Queue<Integer> inputBuffer = new LinkedList<>();
+	@SuppressWarnings("unused")
 	private List<Integer> programData;
 	private int mop;
 
 	private VMListener listener;
+	@SuppressWarnings("unused")
+	private CPU cpu;
 
 	public void setListener(VMListener listener) {
 	    this.listener = listener;
+	}
+	
+	public VirtualMachine() {
+		this.cpu = new CPU(this);
 	}
 
 	public void run() {
@@ -28,7 +39,9 @@ public class VirtualMachine {
 	}
 
 	public void setProgramData(List<Integer> programData) {
-	    listener.onProgramDataInitialized();
+		// should probably reset the whole memory as well, like registers and inputBuffer
+	    this.inputBuffer.clear();
+		listener.onProgramDataInitialized();
 		this.programData = programData;
 	}
 
@@ -38,9 +51,30 @@ public class VirtualMachine {
 			listener.onCycleCompleted();
 		}
 	}
+	
+	public void printOutput(String message) {
+		if (mop == 0)
+            System.out.println(message);
+		if (mop == 1 || mop == 2) {
+			listener.onOutputProduced(message);
+		}
+	}
 
+	public void pushInput(int value) {
+	    inputBuffer.add(value);
+	}
+
+	public int readInput() {
+		if (inputBuffer.isEmpty()) {
+	        // Pause execution, or throw an error
+	        throw new IllegalStateException("Input buffer is empty!");
+	    }
+	    return inputBuffer.poll();
+	}
+
+	
 	public String peekNextInstruction() {
-		// TODO Auto-generated method stub
+		// Should give a quick description of what the next instruction will do
 		return null;
 	}
 

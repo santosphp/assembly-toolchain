@@ -23,7 +23,7 @@ public class MachinePanel extends JPanel implements VMListener {
 	private final VirtualMachine vm;
 	private final MemoryPanel memoryPanel;
     private final EditorPanel editorPanel;
-    private final IOConsolePanel ioConsole;
+    private final IOConsolePanel ioConsolePanel;
     private final ControlsPanel controlsPanel;
 	private final RegistersPanel registersPanel;
 
@@ -35,7 +35,7 @@ public class MachinePanel extends JPanel implements VMListener {
         this.memoryPanel = new MemoryPanel();
 
         this.editorPanel = new EditorPanel();
-        this.ioConsole = new IOConsolePanel();
+        this.ioConsolePanel = new IOConsolePanel();
         
         this.controlsPanel = new ControlsPanel();
         this.registersPanel = new RegistersPanel();
@@ -70,7 +70,7 @@ public class MachinePanel extends JPanel implements VMListener {
 
 	    gbc2.gridy = 2;
 	    gbc2.weighty = 0.3;  // 30%
-	    col2.add(ioConsole, gbc2);
+	    col2.add(ioConsolePanel, gbc2);
 
 	    add(col2, gbc);
 
@@ -131,6 +131,17 @@ public class MachinePanel extends JPanel implements VMListener {
     	    vm.setMop(2);
     	    vm.step();
     	});
+    	
+    	ioConsolePanel.setOnInputSubmitted(input -> {
+    	    try {
+    	    	int value = Integer.parseInt(input);
+    	        vm.pushInput(value);
+    	        ioConsolePanel.appendOutput("> " + input);
+    	    } catch (NumberFormatException ex) {
+    	        ioConsolePanel.appendOutput("Invalid input: " + input);
+    	    }
+    	});
+
     }
 
 	@Override
@@ -142,12 +153,17 @@ public class MachinePanel extends JPanel implements VMListener {
 
 	@Override
 	public void onProgramFinished() {
-		ioConsole.appendOutput("Program finished!");		
+		ioConsolePanel.appendOutput("Program finished!");		
 	}
 
 	@Override
 	public void onProgramDataInitialized() {
-		ioConsole.clear();
-		ioConsole.appendOutput("Program loaded!");
+		ioConsolePanel.clear();
+		ioConsolePanel.appendOutput("Program loaded!");
+	}
+
+	@Override
+	public void onOutputProduced(String message) {
+		ioConsolePanel.appendOutput(message);
 	}
 }
