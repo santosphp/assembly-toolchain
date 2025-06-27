@@ -75,7 +75,7 @@ public class VirtualMachine {
 	
 	public String peekNextInstruction() {
 		// Should give a quick description of what the next instruction will do
-		return null;
+		return "Test instruction";
 	}
 
 	public void setMop(int mop) {

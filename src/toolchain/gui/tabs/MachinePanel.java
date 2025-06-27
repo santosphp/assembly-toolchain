@@ -148,7 +148,7 @@ public class MachinePanel extends JPanel implements VMListener {
 	public void onCycleCompleted() {
         memoryPanel.refresh(vm);
         registersPanel.refresh(vm);
-        // maybe update console too
+        controlsPanel.setNextInstruction(vm.peekNextInstruction());
 	}
 
 	@Override
