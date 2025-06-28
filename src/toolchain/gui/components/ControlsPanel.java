@@ -1,9 +1,7 @@
 package toolchain.gui.components;
 
 import java.awt.BorderLayout;
-import java.awt.Color;
 import java.awt.FlowLayout;
-import java.awt.Font;
 
 import javax.swing.JButton;
 import javax.swing.JLabel;
@@ -29,9 +27,9 @@ public class ControlsPanel extends JPanel {
         JPanel buttonsPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 10, 5));
         buttonsPanel.setBackground(Theme.BACKGROUND);
 
-        loadButton = createButton("Load");
-        runButton = createButton("Run");
-        stepButton = createButton("Step");
+        loadButton = Theme.createButton("Load");
+        runButton = Theme.createButton("Run");
+        stepButton = Theme.createButton("Step");
 
         buttonsPanel.add(loadButton);
         buttonsPanel.add(runButton);
@@ -45,15 +43,6 @@ public class ControlsPanel extends JPanel {
         nextInstructionLabel.setHorizontalAlignment(SwingConstants.CENTER);
         add(nextInstructionLabel, BorderLayout.CENTER);
         
-    }
-
-    private JButton createButton(String text) {
-        JButton button = new JButton(text);
-        button.setFocusPainted(false);  // Remove highlight around button text
-        button.setBackground(new Color(100, 100, 100));
-        button.setForeground(Theme.FOREGROUND);
-        button.setFont(new Font("SansSerif", Font.BOLD, 12));
-        return button;
     }
 	
 	public void setNextInstruction(String instruction) {

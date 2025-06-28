@@ -4,6 +4,7 @@ import java.awt.Color;
 import java.awt.Font;
 
 import javax.swing.BorderFactory;
+import javax.swing.JButton;
 import javax.swing.border.TitledBorder;
 
 public class Theme {
@@ -25,5 +26,14 @@ public class Theme {
             MONO_BOLD,
             FOREGROUND
         );
+    }
+    
+    public static JButton createButton(String text) {
+        JButton button = new JButton(text);
+        button.setFocusPainted(false); // Remove highlight around button text
+        button.setBackground(new Color(100, 100, 100));
+        button.setForeground(FOREGROUND);
+        button.setFont(new Font("SansSerif", Font.BOLD, 12));
+        return button;
     }
 }
