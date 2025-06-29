@@ -17,8 +17,14 @@ public class MainFrame extends JFrame {
         setDefaultCloseOperation(EXIT_ON_CLOSE);  // Close application on X
         setLocationRelativeTo(null); // Center on screen
         
-        SidebarPanel sidebar = new SidebarPanel();
         ContentPanel contentPanel = new ContentPanel(vm);
+        SidebarPanel sidebar = new SidebarPanel(contentPanel);
+        
+        String defaultPanel = "Machine";
+        
+        contentPanel.showTab(defaultPanel);
+        sidebar.selectButton(defaultPanel);
+
         
         getContentPane().setLayout(new BorderLayout());
         getContentPane().add(sidebar, BorderLayout.WEST);
