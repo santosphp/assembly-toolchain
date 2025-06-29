@@ -1,6 +1,9 @@
 package toolchain.vm;
 
 import java.util.List;
+import java.util.Scanner;
+import java.io.File;
+import java.io.FileNotFoundException;
 import java.util.ArrayList;
 
 public class VirtualMachine {
@@ -13,7 +16,27 @@ public class VirtualMachine {
 		System.out.println("Loading from: " + filePath + "\n");
 		List<Integer> program = new ArrayList<>();
 		
+		try {
+			System.out.println("Loading from file: " + filePath);
+			File myObj = new File(filePath);
+		    Scanner myReader = new Scanner(myObj);
+		    while (myReader.hasNextLine()) {
+		    	try {
+			      int data = myReader.nextInt();
+			      System.out.println(data);
+			      programData.add(data);
+		    	} catch (Error e) {
+					 e.printStackTrace();
+					 continue;
+		    	}
+		    }
+		    myReader.close();
+		  } catch (FileNotFoundException e) {
+		    System.out.println("An error occurred fetching the instructions.");
+		    e.printStackTrace();
+		 }
 		
+		/*
 		// Sumbtrai dois Imediatos 
 		program.add(131); // LOAD Im
 		program.add(10);
@@ -28,6 +51,7 @@ public class VirtualMachine {
 		program.add(102);
 		
 		program.add(11); //Stop
+		*/
 
 		// ----------------------------------------------
 		/*
@@ -35,7 +59,7 @@ public class VirtualMachine {
 		program.add(131); // LOAD Im
 		program.add(10);
 
-		program.add(7); // STORE Dir
+it		program.add(7); // STORE Dir
 		program.add(100);
 		
 		program.add(131); // LOAD Im

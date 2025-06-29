@@ -12,7 +12,7 @@ public class Main {
         System.out.println(virtualMachine.getCpu().getRegistersState());
         
 
-        virtualMachine.loadFromFile("Teste");
+        virtualMachine.loadFromFile("bin/toolchain/assets/instructions.txt");
         
         virtualMachine.startSimulation();
         
