@@ -1,4 +1,4 @@
-package toolchain.gui;
+package app.gui;
 
 import java.awt.Color;
 import java.awt.Font;

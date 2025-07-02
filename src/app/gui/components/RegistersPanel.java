@@ -1,4 +1,4 @@
-package toolchain.gui.components;
+package app.gui.components;
 
 import java.awt.BorderLayout;
 
@@ -6,8 +6,8 @@ import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.SwingConstants;
 
-import toolchain.gui.Theme;
-import toolchain.vm.VirtualMachine;
+import app.gui.Theme;
+import app.toolchain.vm.VirtualMachine;
 
 public class RegistersPanel extends JPanel {
     private static final long serialVersionUID = 1L;

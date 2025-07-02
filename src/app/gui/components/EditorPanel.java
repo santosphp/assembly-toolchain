@@ -1,4 +1,4 @@
-package toolchain.gui.components;
+package app.gui.components;
 
 import java.awt.BorderLayout;
 import java.awt.FlowLayout;
@@ -15,7 +15,7 @@ import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
 
-import toolchain.gui.Theme;
+import app.gui.Theme;
 
 public class EditorPanel extends JPanel {
     private static final long serialVersionUID = 1L;
@@ -93,7 +93,7 @@ public class EditorPanel extends JPanel {
         }
     }
 
-    private void saveFile(boolean forceChoose) {
+    public void saveFile(boolean forceChoose) {
         if (currentFile == null || forceChoose) {
             JFileChooser chooser = new JFileChooser();
             int result = chooser.showSaveDialog(this);

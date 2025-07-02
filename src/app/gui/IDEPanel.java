@@ -1,4 +1,4 @@
-package toolchain.gui.tabs;
+package app.gui;
 
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
@@ -7,30 +7,38 @@ import java.util.ArrayList;
 import java.util.List;
 
 import javax.swing.JPanel;
+import javax.swing.SwingUtilities;
+import javax.swing.Timer;
 
-import toolchain.gui.components.ControlsPanel;
-import toolchain.gui.components.EditorPanel;
-import toolchain.gui.components.IOConsolePanel;
-import toolchain.gui.components.MemoryPanel;
-import toolchain.gui.components.RegistersPanel;
-import toolchain.gui.components.StackPanel;
-import toolchain.vm.VirtualMachine;
-import toolchain.vm.vmlistener.VMListener;
+import app.gui.components.ControlsPanel;
+import app.gui.components.EditorPanel;
+import app.gui.components.IOConsolePanel;
+import app.gui.components.MemoryPanel;
+import app.gui.components.RegistersPanel;
+import app.gui.components.StackPanel;
+import app.toolchain.Toolchain;
+import app.toolchain.vm.VirtualMachine;
 
-public class MachinePanel extends JPanel implements VMListener {
+public class IDEPanel extends JPanel {
 	
 	private static final long serialVersionUID = 1L;
+	private final Toolchain toolchain;
 	private final VirtualMachine vm;
 	private final MemoryPanel memoryPanel;
     private final EditorPanel editorPanel;
     private final IOConsolePanel ioConsolePanel;
     private final ControlsPanel controlsPanel;
 	private final RegistersPanel registersPanel;
+	
+	private final List<String> sourceFiles = new ArrayList<>();
 
-    public MachinePanel(VirtualMachine vm) {
+    private Timer clockTimer;
+    private boolean clockRunning = false;
+
+    public IDEPanel(Toolchain toolchain) {
         super(new GridBagLayout());
-        this.vm = vm;
-        this.vm.setListener(this);
+        this.toolchain = toolchain;
+        this.vm = toolchain.getVM();
 
         this.memoryPanel = new MemoryPanel();
 
@@ -42,9 +50,14 @@ public class MachinePanel extends JPanel implements VMListener {
         
         setupLayout();
         setupListeners();
+	    vm.printOutput("Output test succefull!");
+	    vm.notifyProgramFinished(); // Should show in console
     }
 
     private void setupLayout() {
+        setBackground(Theme.BACKGROUND);
+        setForeground(Theme.FOREGROUND);
+    	
         GridBagConstraints gbc = new GridBagConstraints();
 	    gbc.insets = new Insets(5, 5, 5, 5); // Puts 5px margins all around each column
 	    gbc.fill = GridBagConstraints.BOTH;
@@ -97,39 +110,53 @@ public class MachinePanel extends JPanel implements VMListener {
 
 	    add(col3, gbc);
     }
-
-    private List<Integer> parseBinary(String code) {
-        String bits = code.replaceAll("[^01]", "");  // Remove all non-binary chars (spaces, newlines, etc.)
-
-        if (bits.length() % 16 != 0) {
-            throw new IllegalArgumentException("Input is not a multiple of 16 bits.");
-        }
-
-        List<Integer> words = new ArrayList<>();
-        for (int i = 0; i < bits.length(); i += 16) {
-            String word = bits.substring(i, i + 16);
-            words.add(Integer.parseUnsignedInt(word, 2));  // Base 2 to base 10 (integer)
-        }
-
-        return words;
-    }
-
     
     private void setupListeners() {
-    	controlsPanel.getLoadButton().addActionListener(e -> {
-    	    String binaryCode = editorPanel.getCode();
-    	    List<Integer> words = parseBinary(binaryCode);
-    	    vm.setProgramData(words);
+    	toolchain.setOnStep(() -> {
+    	    memoryPanel.refresh(vm);
+    	    registersPanel.refresh(vm);
+    	    controlsPanel.setNextInstruction(vm.peekNextInstruction());
     	});
 
+    	vm.setOutputConsumer(text -> {
+    	    SwingUtilities.invokeLater(() -> {
+    	        ioConsolePanel.appendOutput(text); 
+    	    });
+    	});
+    	
+    	controlsPanel.getBuildButton().addActionListener(e -> {
+    		editorPanel.saveFile(false);
+    		
+    		// This doesn't actually work until we manage to settle on
+    		// how to properly handle multiple files, maybe we should
+    		// just do the usual and have two JTextArea editors
+    		
+    	    ioConsolePanel.clear();
+    	    try {
+    	        toolchain.prepare(sourceFiles);
+    	        ioConsolePanel.appendOutput("Build was succefull.");
+    	    } catch (Exception ex) {
+    	        ioConsolePanel.appendOutput("Build failed: " + ex.getMessage());
+    	        ex.printStackTrace();
+    	    }
+    	});
+
+    	controlsPanel.getQuickRunButton().addActionListener(e -> {
+    	    stopClock();
+    	    vm.setMop(0);
+    	    new Thread(() -> toolchain.runFast()).start(); // runFast won't freeze GUI
+    	});
+    	
     	controlsPanel.getRunButton().addActionListener(e -> {
+    	    stopClock();
     	    vm.setMop(1);
-    	    vm.run();
+    	    startClock(1000); // 1 second between ticks (1 Hz)
     	});
 
     	controlsPanel.getStepButton().addActionListener(e -> {
+    	    stopClock();
     	    vm.setMop(2);
-    	    vm.step();
+    	    toolchain.tick();
     	});
     	
     	ioConsolePanel.setOnInputSubmitted(input -> {
@@ -141,29 +168,26 @@ public class MachinePanel extends JPanel implements VMListener {
     	        ioConsolePanel.appendOutput("Invalid input: " + input);
     	    }
     	});
+    }
+    
+    private void startClock(int delayMs) {
+        if (clockRunning || vm.isHalted()) return;
 
+        clockTimer = new Timer(delayMs, e -> {
+            toolchain.tick(); // Toolchain handles one instruction + GUI update via onStep
+            if (vm.isHalted() || vm.getMop() != 1) {
+                stopClock();
+            }
+        });
+        clockTimer.start();
+        clockRunning = true;
     }
 
-	@Override
-	public void onCycleCompleted() {
-        memoryPanel.refresh(vm);
-        registersPanel.refresh(vm);
-        controlsPanel.setNextInstruction(vm.peekNextInstruction());
-	}
-
-	@Override
-	public void onProgramFinished() {
-		ioConsolePanel.appendOutput("Program finished!");		
-	}
-
-	@Override
-	public void onProgramDataInitialized() {
-		ioConsolePanel.clear();
-		ioConsolePanel.appendOutput("Program loaded!");
-	}
-
-	@Override
-	public void onOutputProduced(String message) {
-		ioConsolePanel.appendOutput(message);
-	}
+    private void stopClock() {
+        if (clockTimer != null) {
+            clockTimer.stop();
+            clockTimer = null;
+        }
+        clockRunning = false;
+    }
 }
