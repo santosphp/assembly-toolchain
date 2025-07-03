@@ -1,21 +1,36 @@
 package toolchain.main;
 
+import java.util.Scanner;
+
+import toolchain.gui.MainFrame;
 import toolchain.vm.VirtualMachine;
 
 public class Main {
 
-	public static void main(String[] args) {
-        System.out.println("AssemblyToolchain is running!");
-        
-        VirtualMachine virtualMachine = new VirtualMachine(0, "Teste...");
-        
-        System.out.println(virtualMachine.getCpu().getRegistersState());
-        
+	private static Scanner scanner;
 
-        virtualMachine.loadFromFile("bin/toolchain/assets/instructions.txt");
+	public static void main(String[] args) {
+
+        VirtualMachine vm = new VirtualMachine();
+        vm.loadFromFile("bin/toolchain/assets/instructions.txt");
         
-        virtualMachine.startSimulation();
+        MainFrame gui = new MainFrame(vm);
         
+        vm.setMop(0);  // CLI mode
+        //vm.setMop(1); // Run mode
+        
+        if (vm.getMop() != 0) {
+        	gui.setVisible(true);
+        	vm.printOutput("Output test, this method should probably be private!");
+        }
+        else {
+            System.out.println("AssemblyToolchain is running on CLI mode!");
+            scanner = new Scanner(System.in);
+            System.out.print("Enter an integer: ");
+            int number = scanner.nextInt();
+            vm.pushInput(number); // Add to the inputBuffer
+            vm.printOutput(Integer.toString(vm.readInput()));
+        }
 	}
 
 }

@@ -1,21 +1,34 @@
 package toolchain.vm;
 
-import java.util.List;
 import java.util.Scanner;
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.util.List;
 import java.util.ArrayList;
+import java.util.LinkedList;
+import java.util.Queue;
+
+import toolchain.vm.cpu.CPU;
+import toolchain.vm.vmlistener.VMListener;
 
 public class VirtualMachine {
-	// Attributes
-	private Cpu cpu;
-	private List<Integer> programData;
 	
-	// Methods
-	public List<Integer> loadFromFile(String filePath) {
-		System.out.println("Loading from: " + filePath + "\n");
-		List<Integer> program = new ArrayList<>();
-		
+	private final Queue<Integer> inputBuffer = new LinkedList<>();
+	@SuppressWarnings("unused")
+	private List<Integer> programData;
+	private int mop;
+
+	private VMListener listener;
+	@SuppressWarnings("unused")
+	private CPU cpu;
+	private boolean isRunning;
+	
+	public VirtualMachine() {
+		this.cpu = new CPU(this);
+		this.programData = new ArrayList<>();
+	}
+
+	public void loadFromFile(String filePath) {
 		try {
 			System.out.println("Loading from file: " + filePath);
 			File myObj = new File(filePath);
@@ -36,147 +49,73 @@ public class VirtualMachine {
 		    e.printStackTrace();
 		 }
 		
-		/*
-		// Sumbtrai dois Imediatos 
-		program.add(131); // LOAD Im
-		program.add(10);
-		
-		program.add(134); // Sub Im
-		program.add(8);
-		
-		program.add(7); //Store Dir
-		program.add(102);
-		
-		program.add(8); //Write Dir
-		program.add(102);
-		
-		program.add(11); //Stop
-		*/
-
-		// ----------------------------------------------
-		/*
-		// Soma 2 numeros endereçados indiretamente
-		program.add(131); // LOAD Im
-		program.add(10);
-
-it		program.add(7); // STORE Dir
-		program.add(100);
-		
-		program.add(131); // LOAD Im
-		program.add(100);
-		
-		program.add(7); // STORE Dir
-		program.add(101);
-		
-
-		program.add(131); // LOAD Im
-		program.add(20);
-
-		program.add(7); // STORE Dir
-		program.add(102);
-		
-		program.add(131); // LOAD Im
-		program.add(102);
-		
-		program.add(7); // STORE Dir
-		program.add(103);
-		
-		
-		program.add(35); // LOAD In
-		program.add(101);
-		
-		program.add(34); // Add In
-		program.add(103);
-		
-		program.add(7); //Store
-		program.add(104);
-		
-		program.add(8); //Write
-		program.add(104);
-		
-		program.add(11); //Stop
-		*/
-		
-		// ----------------------------------------------
-		/*
-		// Conta de 0 a 10 usando BR e BRZERO
-		program.add(131); // LOAD Im
-		program.add(0);
-
-		program.add(7); // STORE Dir
-		program.add(100);
-		
-		program.add(131); // LOAD Im
-		program.add(10);
-
-		program.add(7); // STORE Dir
-		program.add(101);
-		
-		program.add(3); // LOAD Dir <---
-		program.add(101);
-
-		program.add(4); // BRZERO Dir
-		program.add(24);
-
-		program.add(134); // SUB Im
-		program.add(1);
-
-		program.add(7); // STORE Dir
-		program.add(101);
-		
-		program.add(3); // LOAD Dir
-		program.add(100);
-		
-		program.add(130); // ADD Im
-		program.add(1);
-		
-		program.add(7); // STORE Dir
-		program.add(100);
-
-		program.add(0); //BR Dir
-		program.add(8);
-		
-		program.add(8); //Write Dir
-		program.add(100);
-		
-		program.add(11); //Stop
-		*/
-		
-		return program;
+		System.out.println(programData.getFirst());
+		this.cpu.setMemory(new Memory(programData));
 	}
 	
-	public void startSimulation() {
+	public void setListener(VMListener listener) {
+	    this.listener = listener;
+	}
 
-		System.out.println("Starting execution...");
-		
-		while(cpu.executeInstruction()) {
-			// Execute
+	public void run() {
+		while(isRunning) {
+			isRunning = cpu.executeInstruction();
+			// After each instruction:
+			if (mop == 1 || mop == 2) {
+			    if (listener != null) listener.onCycleCompleted();
+			}
 		}
-		
-		System.out.println("Ending execution...");
-	}
-	
-	// Constructor
-	public VirtualMachine(int mop, String filePath) {
-		super();
-		this.programData = loadFromFile(filePath);
-		this.cpu = new Cpu(mop, programData);
-	}
-	
-	// Getters and Setters
-	public Cpu getCpu() {
-		return cpu;
-	}
-
-	public void setCpu(Cpu cpu) {
-		this.cpu = cpu;
-	}
-
-	public List<Integer> getProgramData() {
-		return programData;
+		// When finished:
+		if (mop == 1 || mop == 2) {
+		    if (listener != null) listener.onProgramFinished();;
+		}
 	}
 
 	public void setProgramData(List<Integer> programData) {
+		// should probably reset the whole memory as well, like registers and inputBuffer
+	    this.inputBuffer.clear();
+		listener.onProgramDataInitialized();
 		this.programData = programData;
+	}
+
+	public void step() {
+		// Execute one instruction
+		this.isRunning =  cpu.executeInstruction();
+		if (mop == 1 || mop == 2) {
+			listener.onCycleCompleted();
+		}
+	}
+	
+	public void printOutput(String message) {
+		if (mop == 0)
+            System.out.println(message);
+		if (mop == 1 || mop == 2) {
+			listener.onOutputProduced(message);
+		}
+	}
+
+	public void pushInput(int value) {
+	    inputBuffer.add(value);
+	}
+
+	public int readInput() {
+		if (inputBuffer.isEmpty()) {
+	        // Pause execution, or throw an error
+	        throw new IllegalStateException("Input buffer is empty!");
+	    }
+	    return inputBuffer.poll();
+	}
+	
+	public String peekNextInstruction() {
+		// Should give a quick description of what the next instruction will do
+		return "Test instruction";
+	}
+
+	public void setMop(int mop) {
+		this.mop = mop;
+	}
+
+	public int getMop() {
+		return mop;
 	}
 }

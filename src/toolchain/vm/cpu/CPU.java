@@ -1,11 +1,17 @@
-package toolchain.vm;
+package toolchain.vm.cpu;
 
-import java.util.List;
-import java.util.Map;
 import java.util.HashMap;
+import java.util.Map;
 
-public class Cpu {
-	// Attributes
+import toolchain.vm.Instruction;
+import toolchain.vm.Memory;
+import toolchain.vm.Register;
+import toolchain.vm.VirtualMachine;
+
+public class CPU {
+	@SuppressWarnings("unused")
+	private int ACC;
+	private VirtualMachine vm;
 	private Register pc;
 	private Register sp;
 	private Register acc;
@@ -13,8 +19,20 @@ public class Cpu {
 	private Register re;
 	private Register r0;
 	private Register r1;
-	private Register mop;
 	private Memory memory;
+
+	// Constructor
+	public CPU(VirtualMachine vm) {
+		super();
+		this.vm = vm;
+		this.pc = new Register(64, 16, "PC");
+		this.sp = new Register(2, 16, "SP");
+		this.acc = new Register(0, 16, "ACC");
+		this.ri = new Register(0, 16, "RI");
+		this.re = new Register(0, 16, "RE"); // Setado na leitura do arquivo...
+		this.r0 = new Register(0, 16, "R0");
+		this.r1 = new Register(0, 16, "R1");
+	}
 
 	// Methods
 	public Boolean executeInstruction() {
@@ -249,10 +267,9 @@ public class Cpu {
 				currentInst.setOperand(1, memory.read(currentInst.getOperand(1)));
 			}
 
-			// CALL Input exception...
-			int inputStream = 10 & 0xFF;
-
-			memory.write(currentInst.getOperand(1), inputStream);
+			// Input exception...
+			int input = vm.readInput();
+			memory.write(currentInst.getOperand(1), input);
 
 			break;
 
@@ -338,10 +355,6 @@ public class Cpu {
 		return true;
 	}
 
-	public void setMop(Integer mop) {
-		this.mop.loadValue(mop);
-	}
-
 	public Map<String, Integer> getRegistersState() {
 		Map<String, Integer> registersState = new HashMap<>();
 		registersState.put(this.pc.getIdentifier(), this.pc.read());
@@ -351,7 +364,6 @@ public class Cpu {
 		registersState.put(this.re.getIdentifier(), this.re.read());
 		registersState.put(this.r0.getIdentifier(), this.r0.read());
 		registersState.put(this.r1.getIdentifier(), this.r1.read());
-		registersState.put(this.mop.getIdentifier(), this.mop.read());
 		return registersState;
 	}
 
@@ -378,20 +390,6 @@ public class Cpu {
 			return 1; // direto (trivial)
 		}
 
-	}
-
-	// Constructor
-	public Cpu(int mopValue, List<Integer> programData) {
-		super();
-		this.pc = new Register(64, 16, "PC");
-		this.sp = new Register(2, 16, "SP");
-		this.acc = new Register(0, 16, "ACC");
-		this.ri = new Register(0, 16, "RI");
-		this.re = new Register(0, 16, "RE"); // Setado na leitura do arquivo...
-		this.r0 = new Register(0, 16, "R0");
-		this.r1 = new Register(0, 16, "R1");
-		this.mop = new Register(mopValue, 16, "MOP");
-		this.memory = new Memory(programData);
 	}
 
 	// Getters and Setters
@@ -449,14 +447,6 @@ public class Cpu {
 
 	public void setR1(Register r1) {
 		this.r1 = r1;
-	}
-
-	public Register getMop() {
-		return mop;
-	}
-
-	public void setMop(Register mop) {
-		this.mop = mop;
 	}
 
 	public Memory getMemory() {
