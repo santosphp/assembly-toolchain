@@ -1,7 +1,7 @@
 # Sistema de Programação para um Computador Hipotético
 
 ## Tecnologias Utilizadas
-- Linguagem: Java
+- Linguagem: Java 21
 - Plataforma: Linux/Windows
 - GUI: Swing
 
@@ -19,7 +19,7 @@ public static void main(String[] args) {
     });
 }
 ```
-1. Cria uma `Toolchain`, um conjunto com todas ferramentas para o sistema de programação.
+1. Cria uma `Toolchain`, um conjunto com todas as ferramentas para o sistema de programação.
 2. Cria e abre a GUI (`MainFrame`), que recebe uma referência de `toolchain` para prover métodos de controle ao usuário.
 
 ### Em `Toolchain` temos a preparação para a execução:
@@ -30,7 +30,7 @@ public class Toolchain {
     private final Linker linker;
     private final Loader loader;
     private final VirtualMachine vm;
-
+    
     public Toolchain() {
         this.macroProcessor = new MacroProcessor();
         this.assembler = new Assembler();
@@ -38,7 +38,7 @@ public class Toolchain {
         this.loader = new Loader();
         this.vm = new VirtualMachine();
     }
-  
+    
     public void prepare(String<> sourceFiles) {
         // Process macros -> assembles -> links -> loads
     }
@@ -48,26 +48,25 @@ public class Toolchain {
     // ...
 ```
 O método `prepare()` realiza toda a cadeia de preparação, usando arquivos reais no disco.
-Ele processa cada arquivo `.ASM`  através do processador de  macros e montador, gerantdo arquvios `.OBJ` e `.LST`.
-Em seguida, o ligador recbe os arquivos `.OBJ` e produz um único executável `.HPX`, que é então passado ao carregador.
+Ele processa cada arquivo `.ASM`  através do processador de  macros e montador, gerando arquivos `.OBJ` e `.LST`.
+Em seguida, o ligador recebe os arquivos `.OBJ` e produz um único executável `.HPX`, que é então passado ao carregador.
 
-Todo este processo é acionado pela GUI, após o usuário escolher os arquivos-fonte.
+Todo este processo é acionado pelo botão `Build` da GUI, após o usuário definir os arquivos-fonte.
 
 ### Ainda em Toolchain temos os modos de execução:
 ```
-    // Mop == 00 || Mop == 02
-	  public void runFast() {
-	  	while (!vm.isHalted() && vm.getMop() == 0) {
-              vm.step();
-          }
-	  }
+// Mop == 00 
+public void runFast() {
+    while (!vm.isHalted() && vm.getMop() == 0) {
+        vm.step();
+    }
+}
 
-    // Mop == 01
-	  public void tick() {
-	      if (vm.isHalted()) return;
-          vm.step();
-          updateGUI();
-	  }
+// Mop == 01 || Mop == 02
+public void tick() {
+    if (vm.isHalted()) return;
+    vm.step();
+    updateGUI();
 }
 ```
 
