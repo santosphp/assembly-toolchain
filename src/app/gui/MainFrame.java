@@ -1,27 +1,24 @@
-package toolchain.gui;
+package app.gui;
 
 import java.awt.BorderLayout;
 
 import javax.swing.JFrame;
 
-import toolchain.vm.VirtualMachine;
-
+import app.toolchain.Toolchain;
 
 public class MainFrame extends JFrame {
 
 	private static final long serialVersionUID = 1L;
 
-	public MainFrame(VirtualMachine vm) {
+	public MainFrame(Toolchain toolchain) {
 		super("Educational Assembly Toolchain");
         setSize(1024, 768);
         setDefaultCloseOperation(EXIT_ON_CLOSE);  // Close application on X
         setLocationRelativeTo(null); // Center on screen
         
-        SidebarPanel sidebar = new SidebarPanel();
-        ContentPanel contentPanel = new ContentPanel(vm);
+        IDEPanel idePanel = new IDEPanel(toolchain);
         
         getContentPane().setLayout(new BorderLayout());
-        getContentPane().add(sidebar, BorderLayout.WEST);
-        getContentPane().add(contentPanel, BorderLayout.CENTER);      
+        getContentPane().add(idePanel, BorderLayout.CENTER);      
     }
 }

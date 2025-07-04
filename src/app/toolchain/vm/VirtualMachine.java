@@ -1,4 +1,4 @@
-package toolchain.vm;
+package app.toolchain.vm;
 
 import java.util.Scanner;
 import java.io.File;
@@ -7,21 +7,20 @@ import java.util.List;
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.Queue;
-
-import toolchain.vm.cpu.CPU;
-import toolchain.vm.vmlistener.VMListener;
+import java.util.function.Consumer;
 
 public class VirtualMachine {
 	
 	private final Queue<Integer> inputBuffer = new LinkedList<>();
+	private Consumer<String> outputConsumer;
 	@SuppressWarnings("unused")
 	private List<Integer> programData;
 	private int mop;
 
-	private VMListener listener;
 	@SuppressWarnings("unused")
 	private CPU cpu;
-	private boolean isRunning;
+	
+	private boolean running;
 	
 	public VirtualMachine() {
 		this.cpu = new CPU(this);
@@ -52,45 +51,34 @@ public class VirtualMachine {
 		System.out.println(programData.getFirst());
 		this.cpu.setMemory(new Memory(programData));
 	}
-	
-	public void setListener(VMListener listener) {
-	    this.listener = listener;
-	}
 
 	public void run() {
-		while(isRunning) {
-			isRunning = cpu.executeInstruction();
-			// After each instruction:
-			if (mop == 1 || mop == 2) {
-			    if (listener != null) listener.onCycleCompleted();
-			}
-		}
-		// When finished:
-		if (mop == 1 || mop == 2) {
-		    if (listener != null) listener.onProgramFinished();;
+		this.running = true;
+		
+		while(this.running) {
+			this.running = cpu.executeInstruction();
+			//...
 		}
 	}
 
 	public void setProgramData(List<Integer> programData) {
 		// should probably reset the whole memory as well, like registers and inputBuffer
 	    this.inputBuffer.clear();
-		listener.onProgramDataInitialized();
 		this.programData = programData;
 	}
 
 	public void step() {
-		// Execute one instruction
-		this.isRunning =  cpu.executeInstruction();
-		if (mop == 1 || mop == 2) {
-			listener.onCycleCompleted();
-		}
+		this.running = cpu.executeInstruction();
+		//...
+	}
+	
+	public void setOutputConsumer(Consumer<String> consumer) {
+	    this.outputConsumer = consumer;
 	}
 	
 	public void printOutput(String message) {
-		if (mop == 0)
-            System.out.println(message);
-		if (mop == 1 || mop == 2) {
-			listener.onOutputProduced(message);
+		if (outputConsumer != null) {
+		    outputConsumer.accept(message);
 		}
 	}
 
@@ -117,5 +105,13 @@ public class VirtualMachine {
 
 	public int getMop() {
 		return mop;
+	}
+
+	public void notifyProgramFinished() {
+		printOutput("Program finished!");
+	}
+
+	public boolean isHalted() {
+		return this.running;
 	}
 }

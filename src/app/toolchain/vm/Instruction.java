@@ -1,4 +1,4 @@
-package toolchain.vm;
+package app.toolchain.vm;
 
 import java.util.List;
 import java.util.ArrayList;

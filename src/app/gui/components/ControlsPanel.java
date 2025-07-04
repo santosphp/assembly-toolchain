@@ -1,20 +1,22 @@
-package toolchain.gui.components;
+package app.gui.components;
 
 import java.awt.BorderLayout;
 import java.awt.FlowLayout;
 
+import javax.swing.AbstractButton;
 import javax.swing.JButton;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.SwingConstants;
 
-import toolchain.gui.Theme;
+import app.gui.Theme;
 
 public class ControlsPanel extends JPanel {
     private static final long serialVersionUID = 1L;
     private final JLabel nextInstructionLabel;
-    private final JButton loadButton;
+    private final JButton buildButton;
     private final JButton runButton;
+    private final JButton quickRunButton;
     private final JButton stepButton;
     
 	public ControlsPanel() {
@@ -27,11 +29,15 @@ public class ControlsPanel extends JPanel {
         JPanel buttonsPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 10, 5));
         buttonsPanel.setBackground(Theme.BACKGROUND);
 
-        loadButton = Theme.createButton("Load");
+        buildButton = Theme.createButton("Build");
+        buildButton.setToolTipText("Assemble and link the current code into the VM");
+        
+        quickRunButton = Theme.createButton("Quick run");
         runButton = Theme.createButton("Run");
         stepButton = Theme.createButton("Step");
 
-        buttonsPanel.add(loadButton);
+        buttonsPanel.add(buildButton);
+        buttonsPanel.add(quickRunButton);
         buttonsPanel.add(runButton);
         buttonsPanel.add(stepButton);
 
@@ -49,7 +55,8 @@ public class ControlsPanel extends JPanel {
         nextInstructionLabel.setText("Next instruction: " + instruction);
     }
 	
-    public JButton getLoadButton() { return loadButton; }
+    public JButton getBuildButton() { return buildButton; }
     public JButton getRunButton() { return runButton; }
     public JButton getStepButton() { return stepButton; }
+	public JButton getQuickRunButton() { return quickRunButton; }
 }

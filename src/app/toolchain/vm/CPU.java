@@ -1,12 +1,7 @@
-package toolchain.vm.cpu;
+package app.toolchain.vm;
 
 import java.util.HashMap;
 import java.util.Map;
-
-import toolchain.vm.Instruction;
-import toolchain.vm.Memory;
-import toolchain.vm.Register;
-import toolchain.vm.VirtualMachine;
 
 public class CPU {
 	@SuppressWarnings("unused")
@@ -141,9 +136,6 @@ public class CPU {
 				currentInst.setOperand(1, memory.read(currentInst.getOperand(1)));
 			}
 
-			// Testar pilha...
-			//memory.write(sp.read(), pc.read());
-			//sp.loadValue(sp.read() + 1);
 			memory.push(pc.read());
 
 			pc.loadValue(currentInst.getOperand(1));
@@ -239,20 +231,14 @@ public class CPU {
 
 			break;
 
-		case 17: // PUSH ???
+		case 17: // PUSH
 
-			// Testar pilha...
-			//memory.write(sp.read(), acc.read());
-			//sp.loadValue(sp.read() + 1);
 			memory.push(acc.read());
 
 			break;
 
-		case 18: // POP ???
+		case 18: // POP
 
-			// Testar pilha...
-			//acc.loadValue(memory.read(sp.read()));
-			//sp.loadValue(sp.read() - 1);
 			acc.loadValue(memory.pop());
 
 			break;
@@ -274,10 +260,6 @@ public class CPU {
 			break;
 
 		case 16: // RET
-
-			// Testar pilha...
-			//acc.loadValue(memory.read(sp.read()));
-			//sp.loadValue(sp.read() - 1);
 			
 			acc.loadValue(memory.pop());
 
@@ -285,7 +267,6 @@ public class CPU {
 
 		case 11: // STOP
 
-			// Encerramento...
 			return false;
 
 		case 7: // STORE
@@ -349,8 +330,6 @@ public class CPU {
 
 			return false;
 		}
-
-		// ...
 
 		return true;
 	}
