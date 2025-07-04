@@ -1,6 +1,4 @@
-package toolchain.vm.cpu;
-
-import toolchain.vm.VirtualMachine;
+package app.toolchain.vm;
 
 public class CPU {
 	@SuppressWarnings("unused")

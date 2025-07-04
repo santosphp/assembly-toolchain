@@ -1,4 +1,4 @@
-package toolchain.gui.components;
+package app.gui.components;
 
 import java.awt.BorderLayout;
 import java.awt.Font;
@@ -10,7 +10,7 @@ import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
 import javax.swing.JTextField;
 
-import toolchain.gui.Theme;
+import app.gui.Theme;
 
 public class IOConsolePanel extends JPanel {
     private static final long serialVersionUID = 1L;
