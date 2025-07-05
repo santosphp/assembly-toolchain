@@ -5,7 +5,6 @@ import java.util.Map;
 
 public class CPU {
 	@SuppressWarnings("unused")
-	private int ACC;
 	private VirtualMachine vm;
 	private Register pc;
 	private Register sp;
@@ -24,17 +23,25 @@ public class CPU {
 		this.sp = new Register(2, 16, "SP");
 		this.acc = new Register(0, 16, "ACC");
 		this.ri = new Register(0, 16, "RI");
-		this.re = new Register(0, 16, "RE"); // Setado na leitura do arquivo...
+		this.re = new Register(0, 16, "RE");
 		this.r0 = new Register(0, 16, "R0");
 		this.r1 = new Register(0, 16, "R1");
 	}
 
 	// Methods
 	public Boolean executeInstruction() {
+		
 		Instruction currentInst = new Instruction();
-		currentInst.setOpcode(memory.read(pc.read()));
 
+		if(pc.read() > memory.getSize()) {
+			System.out.println("PC acessou um endereço fora da memória!!!");
+			return false;
+		}
+		currentInst.setOpcode(memory.read(pc.read()));
 		pc.loadValue(pc.read() + 1);
+		
+		// Atualiza o sp local com o da memória
+		sp.loadValue(memory.getSp().read());
 
 		currentInst.setAddrMode(decodeAdressingMode(currentInst.getOpcode()));
 		ri.loadValue(currentInst.getOpcode() & 0x1F);
@@ -254,6 +261,8 @@ public class CPU {
 			}
 
 			// Input exception...
+			// Hold execution until inputBuffer contains something
+			while(vm.getInputBuffer().isEmpty()) {}
 			int input = vm.readInput();
 			memory.write(currentInst.getOperand(1), input);
 
@@ -334,6 +343,13 @@ public class CPU {
 		return true;
 	}
 
+	public int peekNextOpcode() {
+		// Get next instruction opcode without increment PC
+		int nextOpcode = memory.read(pc.read()+1);
+		// Return opcode without addressing mode
+		return (nextOpcode & 0x1F);
+	}
+	
 	public Map<String, Integer> getRegistersState() {
 		Map<String, Integer> registersState = new HashMap<>();
 		registersState.put(this.pc.getIdentifier(), this.pc.read());
@@ -369,6 +385,16 @@ public class CPU {
 			return 1; // direto (trivial)
 		}
 
+	}
+	
+	public void clearRegisters() {
+		this.pc.loadValue(0);
+		this.sp.loadValue(0);
+		this.acc.loadValue(0);
+		this.ri.loadValue(0);
+		this.re.loadValue(0);
+		this.r0.loadValue(0);
+		this.r1.loadValue(0);
 	}
 
 	// Getters and Setters

@@ -98,4 +98,7 @@ public class Memory {
 		return sp;
 	}
 	
+	public int getSize() {
+		return size;
+	}
 }
