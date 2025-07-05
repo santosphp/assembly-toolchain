@@ -1,8 +1,9 @@
 package app.toolchain.vm;
 
 import java.util.Scanner;
-import java.io.File;
-import java.io.FileNotFoundException;
+import java.io.BufferedReader;
+import java.io.FileReader;
+import java.io.IOException;
 import java.util.List;
 import java.util.ArrayList;
 import java.util.LinkedList;
@@ -28,6 +29,7 @@ public class VirtualMachine {
 	}
 
 	public void loadFromFile(String filePath) {
+		/*
 		try {
 			System.out.println("Loading from file: " + filePath);
 			File myObj = new File(filePath);
@@ -47,6 +49,29 @@ public class VirtualMachine {
 		    System.out.println("An error occurred fetching the instructions.");
 		    e.printStackTrace();
 		 }
+		 */
+		try {
+			FileReader myObj = new FileReader(filePath);
+			BufferedReader myReader = new BufferedReader(myObj);
+            String line;
+            
+            while ((line = myReader.readLine()) != null) {
+            	
+                String[] binaryStrings = line.split("\\s+");
+                
+                for (String binary : binaryStrings) {
+                    if (binary.length() == 16) {
+                        int data = Integer.parseInt(binary, 2);
+      			      	System.out.println(data);
+                        programData.add(data);
+                    }
+                }
+            }
+            myReader.close();
+        } catch (IOException e) {
+            System.err.println("An error occurred fetching the instructions.");
+		    e.printStackTrace();
+        }
 		
 		this.cpu.setMemory(new Memory(programData));
 	}
