@@ -31,8 +31,11 @@ public class MemoryPanel extends JPanel {
         memoryTable = new JTable(tableModel);
         styleMemoryTable(memoryTable);
 
-        JScrollPane scrollPane = new JScrollPane(memoryTable);	// barra de rolage para não ultrapassar limite de espaço
+        JScrollPane scrollPane = new JScrollPane(memoryTable);
         scrollPane.setBorder(null); 
+        
+        scrollPane.setBackground(Theme.BACKGROUND);
+        scrollPane.getViewport().setBackground(Theme.BACKGROUND);
         
         add(scrollPane, BorderLayout.CENTER); 
     }
@@ -54,7 +57,7 @@ public class MemoryPanel extends JPanel {
         table.getColumnModel().getColumn(1).setPreferredWidth(100); 
         
         table.setShowGrid(false); 
-        table.setIntercellSpacing(new java.awt.Dimension(0, 0)); // remove espaçamento entre células
+        table.setIntercellSpacing(new java.awt.Dimension(0, 0)); //remove espaçamento entre células
     }
 
     public void refresh(VirtualMachine vm) {
