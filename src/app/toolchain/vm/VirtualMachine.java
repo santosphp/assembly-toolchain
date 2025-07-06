@@ -1,6 +1,5 @@
 package app.toolchain.vm;
 
-import java.util.Scanner;
 import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.IOException;
@@ -76,10 +75,6 @@ public class VirtualMachine {
 		this.cpu.setMemory(new Memory(programData));
 	}
 
-	public void run() {
-		//...
-	}
-
 	public void setProgramData(List<Integer> programData) {
 		// Clean inputBuffer, registers and build new memory data
 	    this.inputBuffer.clear();
@@ -90,7 +85,6 @@ public class VirtualMachine {
 
 	public void step() {
 		this.running = cpu.executeInstruction();
-		//...
 	}
 	
 	public void setOutputConsumer(Consumer<String> consumer) {
