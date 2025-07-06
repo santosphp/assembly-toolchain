@@ -25,6 +25,7 @@ public class IDEPanel extends JPanel {
 	private final Toolchain toolchain;
 	private final VirtualMachine vm;
 	private final MemoryPanel memoryPanel;
+	private final StackPanel stackPanel;
     private final EditorPanel editorPanel;
     private final IOConsolePanel ioConsolePanel;
     private final ControlsPanel controlsPanel;
@@ -41,6 +42,7 @@ public class IDEPanel extends JPanel {
         this.vm = toolchain.getVM();
 
         this.memoryPanel = new MemoryPanel();
+        this.stackPanel = new StackPanel();
 
         this.editorPanel = new EditorPanel();
         this.ioConsolePanel = new IOConsolePanel();
@@ -106,7 +108,7 @@ public class IDEPanel extends JPanel {
 
 	    gbc3.gridy = 2;
 	    gbc3.weighty = 0.55;  // 55%
-	    col3.add(new StackPanel(), gbc3);
+	    col3.add(stackPanel, gbc3);
 
 	    add(col3, gbc);
     }
@@ -115,6 +117,7 @@ public class IDEPanel extends JPanel {
     	toolchain.setOnStep(() -> {
     	    memoryPanel.refresh(vm);
     	    registersPanel.refresh(vm);
+    	    stackPanel.refresh(vm);
     	    controlsPanel.setNextInstruction(vm.peekNextInstruction());
     	});
 
