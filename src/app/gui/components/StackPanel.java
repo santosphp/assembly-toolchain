@@ -1,22 +1,82 @@
 package app.gui.components;
 
 import java.awt.BorderLayout;
+import java.awt.Font;
+import java.util.Collections; //para Collections.reverse()
+import java.util.List; //para usar List no refresh
 
-import javax.swing.JLabel;
 import javax.swing.JPanel;
-import javax.swing.SwingConstants;
+import javax.swing.JScrollPane;
+import javax.swing.JTable;
+import javax.swing.table.DefaultTableModel;
 
 import app.gui.Theme;
+import app.toolchain.vm.VirtualMachine; 
 
 public class StackPanel extends JPanel {
-    private static final long serialVersionUID = 1L;
 
-	public StackPanel() {
-        setBorder(Theme.createTitledBorder("Stack"));
+    private static final long serialVersionUID = 1L;
+    private JTable stackTable;
+    private DefaultTableModel tableModel;
+
+    public StackPanel() {
         setLayout(new BorderLayout());
-        add(new JLabel("[Stack]", SwingConstants.CENTER), BorderLayout.CENTER);
-        
+        setBorder(Theme.createTitledBorder("Stack")); 
         setBackground(Theme.BACKGROUND);
         setForeground(Theme.FOREGROUND);
+
+        tableModel = new DefaultTableModel(new Object[]{"Address", "Value"}, 0) {
+            @Override
+            public boolean isCellEditable(int row, int column) {	//impede edição direta
+                return false;
+            }
+        };
+
+        stackTable = new JTable(tableModel);
+        styleStackTable(stackTable); 
+
+        JScrollPane scrollPane = new JScrollPane(stackTable);
+        scrollPane.setBorder(null); 
+        
+        scrollPane.setBackground(Theme.BACKGROUND);
+        scrollPane.getViewport().setBackground(Theme.BACKGROUND);
+        
+        add(scrollPane, BorderLayout.CENTER); //adiciona ao painel
+    }
+
+    private void styleStackTable(JTable table) {
+        table.setFont(new Font("Monospaced", Font.PLAIN, 12));
+        table.setBackground(Theme.BACKGROUND);
+        table.setForeground(Theme.FOREGROUND);
+        table.setSelectionBackground(Theme.FOREGROUND);
+        table.setSelectionForeground(Theme.BACKGROUND);
+
+        table.getTableHeader().setBackground(Theme.BACKGROUND.darker());
+        table.getTableHeader().setForeground(Theme.FOREGROUND);
+        table.getTableHeader().setFont(new Font("Monospaced", Font.BOLD, 12));
+        table.getTableHeader().setReorderingAllowed(false);
+        table.getTableHeader().setResizingAllowed(false);
+
+        table.getColumnModel().getColumn(0).setPreferredWidth(80); 
+        table.getColumnModel().getColumn(1).setPreferredWidth(100); 
+        
+        table.setShowGrid(false); 
+        table.setIntercellSpacing(new java.awt.Dimension(0, 0));
+    }
+
+    public void refresh(VirtualMachine vm) {
+        tableModel.setRowCount(0); //limpa o modelo da tabela
+
+        int simulatedStackPointer = 15;		//stackSize temporário
+        //ex via método: int simulatedStackPointer = vm.getStack().getStackPointerValue();
+
+        for (int i = simulatedStackPointer -1; i >= 0; i--) {	//temporário até termos os métodos
+            int value = 100 + i; 
+
+            String addressDisplay = String.format("SP-%02d", (simulatedStackPointer - 1) - i);
+            String valueDisplay = String.format("0x%04X", value); //valor em Hex
+
+            tableModel.addRow(new Object[]{addressDisplay, valueDisplay});
+        }
     }
 }
