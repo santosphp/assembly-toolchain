@@ -51,6 +51,8 @@ public class Assembler {
 
     private Path sourceFile;
     private String baseName;
+    private String programName;
+    private int programStack;
 
     private BufferedWriter objW;
     private BufferedWriter lstW;
@@ -103,7 +105,25 @@ public class Assembler {
             if (isDirective(sl.opcode)) {
                 // Directive switch
             	switch (sl.opcode) {
-            		// TODO: switch body
+	            	case "START":
+	            		this.programName = sl.op1;
+	            		break;
+	            	case "END":
+	            		// ...
+	            		break;
+	            	case "INTDEF":
+	            		// ...
+	            		break;
+	            	case "INTUSE":
+	            		// ...
+	            		break;
+	            	case "CONST","SPACE":
+	            		symbolTable.put(sl.label.toUpperCase(), this.lc);
+	            		this.lc += 1;
+            			break;
+	            	case "STACK":
+	            		this.programStack = Integer.parseInt(sl.op1);
+	            		break;
             	}
             } 
             else // Its a instruction
