@@ -3,6 +3,8 @@ package app.gui;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.Insets;
+import java.io.File; // Import File
+import java.nio.file.Files; // Import Files
 import java.util.ArrayList;
 import java.util.List;
 
@@ -31,7 +33,7 @@ public class IDEPanel extends JPanel {
     private final ControlsPanel controlsPanel;
 	private final RegistersPanel registersPanel;
 	
-	private final List<String> sourceFiles = new ArrayList<>();
+	 private final List<String> sourceFiles = new ArrayList<>(); 
 
     private Timer clockTimer;
     private boolean clockRunning = false;
@@ -128,16 +130,12 @@ public class IDEPanel extends JPanel {
     	});
     	
     	controlsPanel.getBuildButton().addActionListener(e -> {
-    		editorPanel.saveFile(false);
-    		
-    		// This doesn't actually work until we manage to settle on
-    		// how to properly handle multiple files, maybe we should
-    		// just do the usual and have two JTextArea editors
+            editorPanel.saveFile(false); 
     		
     	    ioConsolePanel.clear();
     	    try {
-    	        toolchain.prepare(sourceFiles);
-    	        ioConsolePanel.appendOutput("Build was succefull.");
+                toolchain.prepare(sourceFiles);
+                ioConsolePanel.appendOutput("Build was succefull.");
     	    } catch (Exception ex) {
     	        ioConsolePanel.appendOutput("Build failed: " + ex.getMessage());
     	        ex.printStackTrace();
