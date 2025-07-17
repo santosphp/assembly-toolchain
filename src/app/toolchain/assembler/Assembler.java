@@ -30,6 +30,10 @@ public class Assembler {
         
         public SrcLine(String raw) {
             this.raw = raw;
+            this.label = "";
+            this.opcode = "";
+            this.op1 = "";
+            this.op2 = "";
         }
 
         @Override
@@ -51,7 +55,6 @@ public class Assembler {
 
     private Path sourceFile;
     private String baseName;
-    private String programName;
     private int programStack;
 
     private BufferedWriter objW;
@@ -65,36 +68,40 @@ public class Assembler {
 		this.instrSet = new HashMap<>(18); // Size Preset (number of opcodes)
         instrSet.put("BR",      new InstrDef(0x00, 2));
         instrSet.put("BRPOS",   new InstrDef(0x01, 2));
-        instrSet.put("ADD",     new InstrDef(0x02, 3));
-        instrSet.put("LOAD",    new InstrDef(0x03, 3));
-        instrSet.put("BRZERO",  new InstrDef(0x04, 3));
-        instrSet.put("BRNEG",   new InstrDef(0x05, 3));
-        instrSet.put("SUB",     new InstrDef(0x06, 3));
-        instrSet.put("STORE",   new InstrDef(0x07, 3));
-        instrSet.put("WRITE",   new InstrDef(0x08, 3));
-        instrSet.put("DIVIDE",  new InstrDef(0x0A, 3));
-        instrSet.put("STOP",    new InstrDef(0x0B, 3));
-        instrSet.put("READ",    new InstrDef(0x0C, 3));
+        instrSet.put("ADD",     new InstrDef(0x02, 2));
+        instrSet.put("LOAD",    new InstrDef(0x03, 2));
+        instrSet.put("BRZERO",  new InstrDef(0x04, 2));
+        instrSet.put("BRNEG",   new InstrDef(0x05, 2));
+        instrSet.put("SUB",     new InstrDef(0x06, 2));
+        instrSet.put("STORE",   new InstrDef(0x07, 2));
+        instrSet.put("WRITE",   new InstrDef(0x08, 2));
+        instrSet.put("DIVIDE",  new InstrDef(0x0A, 2));
+        instrSet.put("STOP",    new InstrDef(0x0B, 1));
+        instrSet.put("READ",    new InstrDef(0x0C, 2));
         instrSet.put("COPY",    new InstrDef(0x0D, 3));
-        instrSet.put("MULT",    new InstrDef(0x0E, 3));
-        instrSet.put("CALL",    new InstrDef(0x0F, 3));
-        instrSet.put("RET",     new InstrDef(0x10, 3));
-        instrSet.put("PUSH",    new InstrDef(0x11, 3));
-        instrSet.put("POP",     new InstrDef(0x12, 3));
+        instrSet.put("MULT",    new InstrDef(0x0E, 2));
+        instrSet.put("CALL",    new InstrDef(0x0F, 2));
+        instrSet.put("RET",     new InstrDef(0x10, 1));
+        instrSet.put("PUSH",    new InstrDef(0x11, 2));
+        instrSet.put("POP",     new InstrDef(0x12, 2));
         this.lc = 0;
 		// Fill the instruction table
     }
 
 	// TODO: Implement properly
     public void assemble(String macroFile, String objPath, String lstPath) throws IOException {
+    	// For now keeping it here
+        readInputFile(macroFile);
     	pass1();
+    	this.openOutputs();
+    	this.writeObjHeader();
     	pass2();
+    	this.writeObjEnd();
+    	this.writeLstFooter();
+    	this.closeOutputs();
     }
     
     private void pass1() throws IOException {
-    	// For now keeping it here
-        readInputFile("Caminho");
-    	
         for (SrcLine sl : srcLines) {
         	// Ignore comments
             if (sl.raw.trim().isEmpty() || sl.raw.charAt(0) == '*') {
@@ -106,7 +113,7 @@ public class Assembler {
                 // Directive switch
             	switch (sl.opcode) {
 	            	case "START":
-	            		this.programName = sl.op1;
+	            		this.baseName = sl.op1;
 	            		break;
 	            	case "END":
 	            		// ...
@@ -132,15 +139,16 @@ public class Assembler {
             	if (def != null)
             	{
             		// Add label to symbol table
-            		if(!sl.label.isEmpty()) {
+            		if(sl.label != null && !sl.label.isBlank()) {
             			symbolTable.put(sl.label.toUpperCase(), this.lc);
             		}
             		this.lc += def.size;
             	}
             	else
             	{
-            		// ASSEMBLER ERROR
-        		    System.out.println("Error! Invalid opcode!");
+            	    // ASSEMBLER ERROR
+            	    System.out.println("Error! Invalid opcode: " + sl.opcode);
+            	    markError("Opcode inválido: " + sl.opcode); // Marcar o erro
             	}
             }
         }
@@ -162,25 +170,28 @@ public class Assembler {
     }
     
     private void readInputFile(String filePath) {
-    	try {
+		try {
 			System.out.println("Loading from file: " + filePath);
 			File myObj = new File(filePath);
 		    Scanner myReader = new Scanner(myObj);
 		    while (myReader.hasNextLine()) {
 		    	try {
-			      String data = myReader.nextLine();
-			      System.out.println(data);
-			      srcLines.add(parseLine(data));
+					String data = myReader.nextLine();
+					System.out.println(data);
+					SrcLine parsed = parseLine(data);
+			        if (parsed != null) {
+			            srcLines.add(parsed);
+			        }
 		    	} catch (Error e) {
 					 e.printStackTrace();
 					 continue;
 		    	}
 		    }
 		    myReader.close();
-		  } catch (FileNotFoundException e) {
+		} catch (FileNotFoundException e) {
 		    System.out.println("An error occurred fetching the instructions.");
 		    e.printStackTrace();
-		 }
+		}
     }
 
     private void handleInstruction(SrcLine sl) throws IOException {
@@ -202,8 +213,13 @@ public class Assembler {
             else { operandVal = symbolValue(op, sl); }
         }
 
+        //int word1 = (mode << 6) | (opcode & 0x3F); 
         int word1 = (opcode << 4) | (mode & 0xF);
+        // 00000000 00000000 00000000 00001010
+        // 00000000 00000000 00000000 10100000 ( << 4)
+        // 00000000 00000000 00000000 10100001 ( | (1 & 0xF))
         String bytes = String.format("%02X%04X", word1, operandVal & 0xFFFF);
+        // op2
 
         writeObjText(sl.address, bytes);
         writeLstLine(sl.address, bytes, sl.raw);
@@ -227,7 +243,7 @@ public class Assembler {
         }
     }
     
-    private void writeObjHeader() throws IOException { objW.write(String.format("H %-6s%n", baseName)); }
+    private void writeObjHeader() throws IOException { objW.write(String.format("H %-6s %-6d%n", baseName, programStack)); }
     private void writeObjText(int addr, String bytes) throws IOException { objW.write(String.format("T %04X %s%n", addr, bytes)); }
     private void writeObjEnd() throws IOException { objW.write("E\n"); }
 
