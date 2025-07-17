@@ -14,30 +14,28 @@ public class RegistersPanel extends JPanel {
 
 	public RegistersPanel() {
         setBorder(Theme.createTitledBorder("Registers"));
-        //setLayout(new BorderLayout());
-        //add(new JLabel("[Registers]", SwingConstants.CENTER), BorderLayout.CENTER);
         setLayout(new GridBagLayout());
         setBackground(Theme.BACKGROUND);
         setForeground(Theme.FOREGROUND);
 
         GridBagConstraints gbc = new GridBagConstraints();
         gbc.insets = new Insets(2, 5, 2, 5); // espaçamento dos pixels
-        gbc.fill = GridBagConstraints.HORIZONTAL; // Preenche horizontalmente
+        gbc.fill = GridBagConstraints.HORIZONTAL; 
         gbc.gridy = 0; 	// inicializa como 0 para valor padrão não ser obtido (RELATIVE), garantindo que tenha 8 linhas
         gbc.weighty = 0.1;	//	espaçamento entre linhas
         
-        addRegisterField(this, gbc, "PC", "pc");
-        addRegisterField(this, gbc, "SP", "sp");
-        addRegisterField(this, gbc, "ACC", "acc");
-        addRegisterField(this, gbc, "MOP", "mop");
-        addRegisterField(this, gbc, "R0", "r0");
-        addRegisterField(this, gbc, "R1", "r1");
-        addRegisterField(this, gbc, "RI", "ri"); // Registrador Interno, talvez possam ser omitidos da visualização
-        addRegisterField(this, gbc, "RE", "re"); // Registrador Interno
+        addRegisterField(this, gbc, "PC");
+        addRegisterField(this, gbc, "SP");
+        addRegisterField(this, gbc, "ACC");
+        addRegisterField(this, gbc, "MOP");
+        addRegisterField(this, gbc, "R0");
+        addRegisterField(this, gbc, "R1");
+        addRegisterField(this, gbc, "RI"); // Registrador Interno, talvez possam ser omitidos da visualização
+        addRegisterField(this, gbc, "RE"); // Registrador Interno
        
     }
 	
-	private void addRegisterField(JPanel parent, GridBagConstraints gbc, String labelText, String registerKey) {
+	private void addRegisterField(JPanel parent, GridBagConstraints gbc, String labelText) {
         JLabel label = new JLabel(labelText + ":", SwingConstants.RIGHT);
         label.setForeground(Theme.FOREGROUND);
         gbc.gridx = 0;
@@ -65,11 +63,11 @@ public class RegistersPanel extends JPanel {
         updateRegisterField("pc", vm.getPC(), 16);
         updateRegisterField("sp", vm.getSP(), 16);
         updateRegisterField("acc", vm.getACC(), 16);
-        updateRegisterField("mop", vm.getMOP(), 8); // MOP é de 8 bits
+        updateRegisterField("mop", vm.getMOP(), 8); 
         updateRegisterField("r0", vm.getR0(), 16);
         updateRegisterField("r1", vm.getR1(), 16);
-        updateRegisterField("ri", vm.getRI(), 16); // Registrador Interno
-        updateRegisterField("re", vm.getRE(), 16); // Registrador Interno
+        updateRegisterField("ri", vm.getRI(), 16); 
+        updateRegisterField("re", vm.getRE(), 16); 
         **/
     }
     
