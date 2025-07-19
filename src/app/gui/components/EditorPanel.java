@@ -188,6 +188,24 @@ public class EditorPanel extends JPanel {
             showError("Failed to save file: " + e.getMessage());
         }
     }
+    
+    public String getArea1FilePath() {
+        File file = currentFiles.get(textArea);
+        if (file != null) {
+            return file.getAbsolutePath();
+        } else {
+            return null;
+        }
+    }
+
+    public String getArea2FilePath() {
+        File file = currentFiles.get(textArea2);
+        if (file != null) {
+            return file.getAbsolutePath();
+        } else {
+            return null;
+        }
+    }
 
     //Listener para detectar quando a aba é trocada e atualizar o título da aba
     private void setupTabChangeListener() {

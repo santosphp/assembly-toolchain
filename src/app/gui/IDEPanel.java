@@ -132,8 +132,25 @@ public class IDEPanel extends JPanel {
     	controlsPanel.getBuildButton().addActionListener(e -> {
             editorPanel.saveFile(false); 
     		
+            sourceFiles.clear();	
     	    ioConsolePanel.clear();
     	    try {
+                String area1Path = editorPanel.getArea1FilePath(); 
+                if (area1Path != null && new File(area1Path).exists()) { //verifica a existência usando um novo File
+                    sourceFiles.add(area1Path);
+                    ioConsolePanel.appendOutput("Adicionado arquivo da Área1: " + new File(area1Path).getName());
+                } else {
+                    ioConsolePanel.appendOutput("AVISO: Nenhum arquivo carregado/salvo na Área1.");
+                }
+
+                String area2Path = editorPanel.getArea2FilePath(); 
+                if (area2Path != null && new File(area2Path).exists()) {
+                    sourceFiles.add(area2Path);
+                    ioConsolePanel.appendOutput("Adicionado arquivo da Área2: " + new File(area2Path).getName());
+                } else {
+                    ioConsolePanel.appendOutput("AVISO: Nenhum arquivo carregado/salvo na Área2.");
+                }
+
                 toolchain.prepare(sourceFiles);
                 ioConsolePanel.appendOutput("Build was succefull.");
     	    } catch (Exception ex) {
