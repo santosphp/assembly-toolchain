@@ -204,25 +204,49 @@ public class Assembler {
 
         int opcode = def.opcode;
         int mode   = 0;                  // 0=dir,1=imm,2=ind
-        int operandVal = 0;
+        int operandVal1 = 0;
+        int operandVal2 = 0;
 
         if (sl.op1 != null) {
-            String op = sl.op1;
-            if (op.startsWith("#")) { mode = 1; operandVal = valueOf(op.substring(1)); }
-            else if (op.endsWith(",I")) { mode = 2; operandVal = symbolValue(op.substring(0, op.length()-2), sl); }
-            else { operandVal = symbolValue(op, sl); }
+            String op1 = sl.op1;
+            if (op1.startsWith("#")) { mode = 1; operandVal1 = valueOf(op1.substring(1)); }
+            else if (op1.endsWith(",I")) { mode = 2; operandVal1 = symbolValue(op1.substring(0, op1.length()-2), sl); }
+            else { operandVal1 = symbolValue(op1, sl); }
         }
 
-        //int word1 = (mode << 6) | (opcode & 0x3F); 
-        int word1 = (opcode << 4) | (mode & 0xF);
+        int word = (mode << 6) | (opcode & 0x3F);
+        
+        if (sl.op2 != null) {
+            String op2 = sl.op2;
+            if (op2.startsWith("#")) { mode = 1; operandVal2 = valueOf(op2.substring(1)); }
+            else if (op2.endsWith(",I")) { mode = 2; operandVal2 = symbolValue(op2.substring(0, op2.length()-2), sl); }
+            else { operandVal2 = symbolValue(op2, sl); }
+        }
+
+        word = (mode << 6) | word; 
+        //int word1 = (opcode << 4) | (mode & 0xF);
         // 00000000 00000000 00000000 00001010
         // 00000000 00000000 00000000 10100000 ( << 4)
         // 00000000 00000000 00000000 10100001 ( | (1 & 0xF))
-        String bytes = String.format("%02X%04X", word1, operandVal & 0xFFFF);
-        // op2
+        
+        String word1 = to16BitString(word);
+        String word2 = to16BitString(operandVal1);
+        String word3 = to16BitString(operandVal2);
+        
+        String bytes = String.format("%s %s %s", word1, word2, word3);
 
         writeObjText(sl.address, bytes);
         writeLstLine(sl.address, bytes, sl.raw);
+    }
+    
+    private static String to16BitString(int number) {
+    	
+        String binary = Integer.toBinaryString(number);
+
+        if (binary.length() > 16) {
+            binary = binary.substring(binary.length() - 16);
+        }
+        return String.format("%16s", binary).replace(' ', '0');
     }
 
     private void handleDirective(SrcLine sl) throws IOException {
