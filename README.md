@@ -136,4 +136,5 @@ private void updateGUI() {
 ### 4. Comunicação I/O entre a GUI e a Máquina Virtual <a name="guiVM"></a>
 ### 5. Gerência de Arquivos <a name="files"></a>
 ### 6. Documentação Detalhada <a name="docs"></a>
+[Máquina Virtual](docs/virtual_machine.md)
 
