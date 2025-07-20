@@ -87,8 +87,10 @@ public class Assembler {
 
     public void assemble(String macroFile, String objPath, String lstPath) throws IOException {
     	boolean error;
-        readInputFile(macroFile);
-    	error = pass1();
+        error = readInputFile(macroFile);
+        if (!error) {
+        	error = pass1();
+        }
     	
     	// Maybe another approach
     	if(!error) {
@@ -193,7 +195,8 @@ public class Assembler {
         }
     }
     
-    private void readInputFile(String filePath) {
+    private boolean readInputFile(String filePath) {
+    	boolean parseError = false;
 		try {
 			System.out.println("Loading from file: " + filePath);
 			File myObj = new File(filePath);
@@ -205,6 +208,8 @@ public class Assembler {
 					SrcLine parsed = parseLine(data);
 			        if (parsed != null) {
 			            srcLines.add(parsed);
+			        }else {
+			        	parseError = true;
 			        }
 		    	} catch (Error e) {
 					 e.printStackTrace();
@@ -216,6 +221,7 @@ public class Assembler {
 		    System.out.println("An error occurred fetching the instructions.");
 		    e.printStackTrace();
 		}
+		return parseError;
     }
 
     private void handleInstruction(SrcLine sl) throws IOException {
@@ -231,23 +237,23 @@ public class Assembler {
         int operandVal1 = 0;
         int operandVal2 = 0;
 
-        if (sl.op1 != null) {
+        if (!sl.op1.isBlank()) {
             String op1 = sl.op1;
-            if (op1.startsWith("#")) { mode = 1; operandVal1 = valueOf(op1.substring(1)); }
-            else if (op1.endsWith(",I")) { mode = 2; operandVal1 = symbolValue(op1.substring(0, op1.length()-2), sl); }
+            if (op1.startsWith("#")) { mode = 128; operandVal1 = valueOf(op1.substring(1)); }
+            else if (op1.endsWith(",I")) { mode = 32; operandVal1 = symbolValue(op1.substring(0, op1.length()-2), sl); }
             else { operandVal1 = symbolValue(op1, sl); }
         }
 
-        int word = (mode << 6) | (opcode & 0x3F);
+        int word = mode | (opcode & 0x3F);
         
-        if (sl.op2 != null) {
+        if (!sl.op2.isBlank()) {
             String op2 = sl.op2;
-            if (op2.startsWith("#")) { mode = 1; operandVal2 = valueOf(op2.substring(1)); }
-            else if (op2.endsWith(",I")) { mode = 2; operandVal2 = symbolValue(op2.substring(0, op2.length()-2), sl); }
+            if (op2.startsWith("#")) { mode = 128; operandVal2 = valueOf(op2.substring(1)); }
+            else if (op2.endsWith(",I")) { mode = 64; operandVal2 = symbolValue(op2.substring(0, op2.length()-2), sl); }
             else { operandVal2 = symbolValue(op2, sl); }
         }
 
-        word = (mode << 6) | word; 
+        word = mode | word;
         //int word1 = (opcode << 4) | (mode & 0xF);
         // 00000000 00000000 00000000 00001010
         // 00000000 00000000 00000000 10100000 ( << 4)
@@ -306,31 +312,79 @@ public class Assembler {
     
     private SrcLine parseLine(String line) {
         String trimmed = line.trim();
-        if (trimmed.isEmpty() || trimmed.charAt(0) == '*') return null;   // comentário/vazio
-
-        SrcLine sl = new SrcLine(line);
-
-        // Tokenização básica por espaços
-        String[] toks = trimmed.split("\\s+");
-        int idx = 0;
-
-        // label? (present se NÃO for opcode ou diretiva)
-        if (!isOpcodeOrDir(toks[idx])) {
-            sl.label = toks[idx++];
+        
+        if (trimmed.length() > 80) {
+    	    markError("Linha muito longa: Não deve haver mais de 80 caracteres numa linha.");
+    	    return null;
         }
+        
+        if (!trimmed.matches("[a-zA-Z0-9 ,#@\\*]*")) {
+    	    markError("Caracter inválido: Unidade sintática não reconhecida (caracter inválido em algum elemento da linha).");
+    	    return null;
+        }
+        
+        if (trimmed.isEmpty()) return null;
+        
+        SrcLine sl = new SrcLine(line);
+        
+        if (trimmed.charAt(0) != '*') {
 
-        sl.opcode = toks[idx++].toUpperCase();
-        if (idx < toks.length) sl.op1 = toks[idx++];
-        if (idx < toks.length) sl.op2 = toks[idx];
+		    // Tokenização básica por espaços
+		    String[] toks = trimmed.split("\\s+");
+		    int idx = 0;
+		
+		    // label? (present se NÃO for opcode ou diretiva)
+		    if (!isOpcodeOrDir(toks[idx])) {
+		        sl.label = toks[idx++];
+		    }
+		
+		    sl.opcode = toks[idx++].toUpperCase();
+		    if (idx < toks.length) sl.op1 = toks[idx++];
+		    if (idx < toks.length) sl.op2 = toks[idx];
+		    
+		    
+        }
 
         return sl;
     }
 
+    /*
     private int valueOf(String token) {
         token = token.trim();
         if (token.startsWith("H'")) return Integer.parseInt(token.substring(2, token.length()-1), 16);
         if (token.startsWith("@"))  return Integer.parseInt(token.substring(1)); // literal decimal simplificado
         return Integer.parseInt(token);  // decimal
+    }
+    */
+    
+    private int valueOf(String token) {
+        token = token.trim();
+        try {
+            if (token.startsWith("H'") && token.endsWith("'")) {
+                String hex = token.substring(2, token.length() - 1);
+                if (!hex.matches("[0-9A-Fa-f]+")) {
+                    markError("Dígito inválido em número hexadecimal: " + token);
+                    return 0;
+                }
+                return Integer.parseInt(hex, 16);
+            } else if (token.startsWith("@")) {
+                String lit = token.substring(1);
+                if (!lit.matches("\\d+")) {
+                    markError("Dígito inválido em literal: " + token);
+                    return 0;
+                }
+                return Integer.parseInt(lit);
+            } else {
+                if (!token.matches("\\d+")) {
+                    markError("Dígito inválido em número decimal: " + token);
+                    return 0;
+                }
+                return Integer.parseInt(token);
+            }
+        } catch (NumberFormatException e) {
+            markError("Erro ao interpretar número: " + token);
+            return 0;
+        }
     }
 
     private int symbolValue(String sym, SrcLine src) {
