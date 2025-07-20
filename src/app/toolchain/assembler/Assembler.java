@@ -5,7 +5,6 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.nio.file.Files;
-import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -53,7 +52,6 @@ public class Assembler {
     private final Map<String,InstrDef> instrSet;
     private final List<SrcLine> srcLines;
 
-    private Path sourceFile;
     private String baseName;
     private int programStack;
 
@@ -85,23 +83,27 @@ public class Assembler {
         instrSet.put("PUSH",    new InstrDef(0x11, 2));
         instrSet.put("POP",     new InstrDef(0x12, 2));
         this.lc = 0;
-		// Fill the instruction table
     }
 
-	// TODO: Implement properly
     public void assemble(String macroFile, String objPath, String lstPath) throws IOException {
-    	// For now keeping it here
+    	boolean error;
         readInputFile(macroFile);
-    	pass1();
-    	this.openOutputs();
-    	this.writeObjHeader();
-    	pass2();
-    	this.writeObjEnd();
-    	this.writeLstFooter();
-    	this.closeOutputs();
+    	error = pass1();
+    	
+    	// Maybe another approach
+    	if(!error) {
+			this.openOutputs();
+			this.writeObjHeader();
+			pass2();
+			this.writeObjEnd();
+			this.writeLstFooter();
+			this.closeOutputs();
+    	}
     }
     
-    private void pass1() throws IOException {
+    private boolean pass1() throws IOException {
+    	boolean hasEndDirective = false;
+    	
         for (SrcLine sl : srcLines) {
         	// Ignore comments
             if (sl.raw.trim().isEmpty() || sl.raw.charAt(0) == '*') {
@@ -110,13 +112,16 @@ public class Assembler {
 
             // Its a directive
             if (isDirective(sl.opcode)) {
+            	
+            	// Invalid operands here too
+            	
                 // Directive switch
             	switch (sl.opcode) {
 	            	case "START":
 	            		this.baseName = sl.op1;
 	            		break;
 	            	case "END":
-	            		// ...
+	            		hasEndDirective = true;
 	            		break;
 	            	case "INTDEF":
 	            		// ...
@@ -136,22 +141,41 @@ public class Assembler {
             else // Its a instruction
             {
             	InstrDef def = instrSet.get(sl.opcode);
+            	
+            	// Syntax ERROR
+            	if (identifyOperendsError(sl, def)) {
+    				markError("Erro de sintaxe: Falta ou excesso de operandos em instruções, ou labels mal formados.");
+    				return true;
+            	}
+            	
             	if (def != null)
             	{
             		// Add label to symbol table
-            		if(sl.label != null && !sl.label.isBlank()) {
+            		if (sl.label != null && !sl.label.isBlank()) {
+            			// Redefinition ERROR
+            			if (symbolTable.containsKey(sl.label)) {
+            				markError("Simbolo redefinido: Referência simbólica com definições múltiplas.");
+            				return true;
+            			}
+            			
             			symbolTable.put(sl.label.toUpperCase(), this.lc);
             		}
             		this.lc += def.size;
             	}
             	else
             	{
-            	    // ASSEMBLER ERROR
-            	    System.out.println("Error! Invalid opcode: " + sl.opcode);
-            	    markError("Opcode inválido: " + sl.opcode); // Marcar o erro
+            		// Invalid instruction ERROR
+            	    markError("Instrução inválida: O mnemônico {" + sl.opcode + "} não corresponde a nenhuma instrução do computador.");
+            	    return true;
             	}
             }
         }
+        if(!hasEndDirective) {
+    		// End directive missing ERROR
+    	    markError("Falta diretiva END: Indicação da ausência de pseudo-instrução END.");
+    	    return true;
+        }
+        return false;
     }
     
     private void pass2() throws IOException {
@@ -333,4 +357,12 @@ public class Assembler {
 
     private void markError(String msg) { errors = true; System.err.println("ERRO: " + msg); }
     private String stripExt(String f) { int d = f.lastIndexOf('.'); return d>=0 ? f.substring(0,d) : f; }
+    
+    private boolean identifyOperendsError(SrcLine sl, InstrDef def) {
+    	int operands = 0;
+    	if (!sl.op1.isBlank()) {operands += 1;}
+    	if (!sl.op2.isBlank()) {operands += 1;}
+    	if(def.size == operands-1) {return false;}
+    	return true;
+    }
 }
