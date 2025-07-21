@@ -179,6 +179,9 @@ public class VirtualMachine {
 	public int getMop() {
 		return mop;
 	}
+	public CPU getCpu() {
+		return this.cpu;
+	}
 	
 	public Queue<Integer> getInputBuffer() {
 		return this.inputBuffer;
