@@ -7,7 +7,8 @@ import javax.swing.JScrollPane;
 import javax.swing.JTable; 
 import javax.swing.table.DefaultTableModel; 
 import app.gui.Theme;
-import app.toolchain.vm.VirtualMachine; 
+import app.toolchain.vm.VirtualMachine;
+import app.toolchain.vm.Memory;
 
 public class MemoryPanel extends JPanel {
 
@@ -23,7 +24,7 @@ public class MemoryPanel extends JPanel {
 
         tableModel = new DefaultTableModel(new Object[]{"Address", "Value"}, 0) {	
             @Override
-            public boolean isCellEditable(int row, int column) {	// impede a edição direta dos nomes da tabela
+            public boolean isCellEditable(int row, int column) {
                 return false;
             }
         };
@@ -62,21 +63,23 @@ public class MemoryPanel extends JPanel {
 
     public void refresh(VirtualMachine vm) {
         tableModel.setRowCount(0);    // limpa o modelo da tabela
-
-        //app.toolchain.vm.Memory memory = vm.getMemory(); // assumindo vm.getMemory() retorna a instância de Memory
-        //int memorySize = memory.getSize(); // obtém o tamanho total da memória (1024)
         
-        int memorySize = 1024;		//temporário até termos os métodos
-
-        for (int i = 0; i < memorySize; i++) {		//preenche a tabela
-            //int value = memory.read(i); // Lê o valor de cada posição
-        	int value = memorySize + i;		//temporário até termos os métodos
+        Memory memory = vm.getCpu().getMemory();
+        if (memory == null) {
+            System.err.println("Erro: Instância de Memory é nula na CPU.");
+            return;
+        }
+        int memorySize = memory.getSize(); // Obtém o tamanho total da memória (1024 atualmnte)
+        
+        for (int i = 0; i < memorySize; i++) {
+            int value = memory.read(i);
         	
-            String addressHex = String.format("%04X", i); // endereço em 4 dígitos hexadecimais
-            String valueDec = String.valueOf(value);     // valor em decimal
-            //String valueHex = String.format("%04X", value & 0xFFFF); // valor em 4 hexadecimais (considerando 16 bits)
-
-            tableModel.addRow(new Object[]{addressHex, valueDec});		//valuedec pode ser trocado por valueHex
+            //String valueDec = String.valueOf(value);     // valor em decimal
+            String addressHex = String.format("%04X", i); //endereço em 4 dígitos hexadecimais
+            String valueHex = String.format("0x%04X", value & 0xFFFF); //formata o valor p/ hexa 4 dígitos. 0xFFFF para garantir 16 bits
+            
+            //tableModel.addRow(new Object[]{addressHex, valueDec});
+            tableModel.addRow(new Object[]{addressHex, valueHex});
         }
     }
 }
