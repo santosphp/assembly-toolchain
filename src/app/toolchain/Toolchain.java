@@ -17,6 +17,7 @@ public class Toolchain {
     private final VirtualMachine vm;
 
     private Runnable onStep;
+    private Boolean vmDebugMode;
     
     public Toolchain() {
         this.macroProcessor = new MacroProcessor();
@@ -24,9 +25,16 @@ public class Toolchain {
         this.linker = new Linker();
         this.loader = new Loader();
         this.vm = new VirtualMachine();
+        this.vmDebugMode = true;
     }
 
     public void prepare(List<String> sourceFileNames) {
+        // Test only the VM with .HPX files
+        if (vmDebugMode) {
+            vm.loadFromFile(sourceFileNames.getFirst());
+            return;
+        }
+
         // 1. Process macros
         List<String> macroOutputs = new ArrayList<>();
         for (String file : sourceFileNames) {

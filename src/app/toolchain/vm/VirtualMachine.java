@@ -28,6 +28,7 @@ public class VirtualMachine {
 	}
 
 	public void loadFromFile(String filePath) {
+		System.out.println("Trying to load from:" + filePath);
 		/*
 		try {
 			System.out.println("Loading from file: " + filePath);
