@@ -25,6 +25,7 @@ public class VirtualMachine {
 	public VirtualMachine() {
 		this.cpu = new CPU(this);
 		this.programData = new ArrayList<>();
+		this.running = true;
 	}
 
 	public void loadFromFile(String filePath) {
@@ -76,11 +77,12 @@ public class VirtualMachine {
 		this.cpu.setMemory(new Memory(programData));
 	}
 
+	// Is this method being used at all?
 	public void setProgramData(List<Integer> programData) {
 		// Clean inputBuffer, registers and build new memory data
 	    this.inputBuffer.clear();
-		this.programData = programData;
 		this.cpu.clearRegisters();
+		this.programData = programData;
 		this.cpu.setMemory(new Memory(programData));
 	}
 
@@ -193,6 +195,12 @@ public class VirtualMachine {
 	}
 
 	public boolean isHalted() {
-		return this.running;
+		return !(this.running);
+	}
+
+	public void reset() {
+		this.cpu = new CPU(this);
+		this.programData = new ArrayList<>();
+		this.running = true;
 	}
 }

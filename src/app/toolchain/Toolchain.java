@@ -29,9 +29,12 @@ public class Toolchain {
     }
 
     public void prepare(List<String> sourceFileNames) {
+    	reset();
+    	
         // Test only the VM with .HPX files
         if (vmDebugMode) {
             vm.loadFromFile(sourceFileNames.getFirst());
+            updateGUI();
             return;
         }
 
@@ -62,7 +65,11 @@ public class Toolchain {
         loader.load(vm, hpxOut);        
     }
     
-    public void setOnStep(Runnable r) {
+    private void reset() {
+    	vm.reset();
+	}
+
+	public void setOnStep(Runnable r) {
         this.onStep = r;
     }
     
@@ -78,6 +85,7 @@ public class Toolchain {
 	}
 
 	public void tick() {
+		System.out.println("VM is halted: " + vm.isHalted());
 	    if (vm.isHalted()) return; // early exit if already halted
         vm.step();
         updateGUI();
