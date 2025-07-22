@@ -74,8 +74,8 @@ public class StackPanel extends JPanel {
             int value = 100 + i; 
 
             String addressDisplay = String.format("SP-%02d", (simulatedStackPointer - 1) - i);
-            String valueDisplay = String.format("0x%04X", value); //valor em Hex
-
+            String valueDisplay = String.format("%d", value); //valor em Decimal
+            
             tableModel.addRow(new Object[]{addressDisplay, valueDisplay});
         }
     }

@@ -69,9 +69,9 @@ public class RegistersPanel extends JPanel {
     private void updateRegisterField(String registerKey, int value, int bitSize) {
         JTextField field = registerFields.get(registerKey); //
         if (field != null) {
-            //formatar o valor para hexadecimal. Para 8 bits, usar %02X, para 16 bits, %04X.
-            String format = (bitSize == 8) ? "0x%02X" : "0x%04X";
-            field.setText(String.format(format, value)); //
+        	
+        	String format = String.valueOf(value);
+        	field.setText(format); //atualiza o campo com o valor formatado
         }
     }
 

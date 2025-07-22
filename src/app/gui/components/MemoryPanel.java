@@ -1,6 +1,7 @@
 package app.gui.components;
 
 import java.awt.BorderLayout;
+import java.awt.Dimension;
 import java.awt.Font;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
@@ -21,6 +22,7 @@ public class MemoryPanel extends JPanel {
         setBorder(Theme.createTitledBorder("Memory")); 
         setBackground(Theme.BACKGROUND);
         setForeground(Theme.FOREGROUND);
+        setMinimumSize(new Dimension(200, 200));
 
         tableModel = new DefaultTableModel(new Object[]{"Address", "Value"}, 0) {	
             @Override
@@ -74,12 +76,9 @@ public class MemoryPanel extends JPanel {
         for (int i = 0; i < memorySize; i++) {
             int value = memory.read(i);
         	
-            //String valueDec = String.valueOf(value);     // valor em decimal
             String addressHex = String.format("%04X", i); //endereço em 4 dígitos hexadecimais
-            String valueHex = String.format("0x%04X", value & 0xFFFF); //formata o valor p/ hexa 4 dígitos. 0xFFFF para garantir 16 bits
-            
-            //tableModel.addRow(new Object[]{addressHex, valueDec});
-            tableModel.addRow(new Object[]{addressHex, valueHex});
+            String valueDec = String.valueOf(value);
+            tableModel.addRow(new Object[]{addressHex, valueDec});
         }
     }
 }
