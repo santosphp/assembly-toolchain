@@ -63,25 +63,25 @@ public class Assembler {
     public Assembler() {
 		this.srcLines = new ArrayList<>();
 		this.symbolTable = new HashMap<>();
-		this.instrSet = new HashMap<>(18); // Size Preset (number of opcodes)
-        instrSet.put("BR",      new InstrDef(0x00, 2));
-        instrSet.put("BRPOS",   new InstrDef(0x01, 2));
-        instrSet.put("ADD",     new InstrDef(0x02, 2));
-        instrSet.put("LOAD",    new InstrDef(0x03, 2));
-        instrSet.put("BRZERO",  new InstrDef(0x04, 2));
-        instrSet.put("BRNEG",   new InstrDef(0x05, 2));
-        instrSet.put("SUB",     new InstrDef(0x06, 2));
-        instrSet.put("STORE",   new InstrDef(0x07, 2));
-        instrSet.put("WRITE",   new InstrDef(0x08, 2));
-        instrSet.put("DIVIDE",  new InstrDef(0x0A, 2));
-        instrSet.put("STOP",    new InstrDef(0x0B, 1));
-        instrSet.put("READ",    new InstrDef(0x0C, 2));
-        instrSet.put("COPY",    new InstrDef(0x0D, 3));
-        instrSet.put("MULT",    new InstrDef(0x0E, 2));
-        instrSet.put("CALL",    new InstrDef(0x0F, 2));
-        instrSet.put("RET",     new InstrDef(0x10, 1));
-        instrSet.put("PUSH",    new InstrDef(0x11, 2));
-        instrSet.put("POP",     new InstrDef(0x12, 2));
+		this.instrSet = new HashMap<>(18);
+        instrSet.put("BR",      new InstrDef( 0, 2));
+        instrSet.put("BRPOS",   new InstrDef( 1, 2));
+        instrSet.put("ADD",     new InstrDef( 2, 2));
+        instrSet.put("LOAD",    new InstrDef( 3, 2));
+        instrSet.put("BRZERO",  new InstrDef( 4, 2));
+        instrSet.put("BRNEG",   new InstrDef( 5, 2));
+        instrSet.put("SUB",     new InstrDef( 6, 2));
+        instrSet.put("STORE",   new InstrDef( 7, 2));
+        instrSet.put("WRITE",   new InstrDef( 8, 2));
+        instrSet.put("DIVIDE",  new InstrDef(10, 2));
+        instrSet.put("STOP",    new InstrDef(11, 1));
+        instrSet.put("READ",    new InstrDef(12, 2));
+        instrSet.put("COPY",    new InstrDef(13, 3));
+        instrSet.put("MULT",    new InstrDef(14, 2));
+        instrSet.put("CALL",    new InstrDef(15, 2));
+        instrSet.put("RET",     new InstrDef(16, 1));
+        instrSet.put("PUSH",    new InstrDef(17, 2));
+        instrSet.put("POP",     new InstrDef(18, 2));
         this.lc = 0;
     }
 
@@ -89,21 +89,21 @@ public class Assembler {
     	boolean error;
         error = readInputFile(macroFile);
         if (!error) {
-        	error = pass1();
+        	error = step1();
         }
     	
     	// Maybe another approach
     	if(!error) {
 			this.openOutputs();
 			this.writeObjHeader();
-			pass2();
+			step2();
 			this.writeObjEnd();
 			this.writeLstFooter();
 			this.closeOutputs();
     	}
     }
     
-    private boolean pass1() throws IOException {
+    private boolean step1() throws IOException {
     	boolean hasEndDirective = false;
     	
         for (SrcLine sl : srcLines) {
@@ -180,7 +180,7 @@ public class Assembler {
         return false;
     }
     
-    private void pass2() throws IOException {
+    private void step2() throws IOException {
         for (SrcLine sl : srcLines) {
             if (sl.raw.trim().isEmpty() || sl.raw.charAt(0) == '*') {
                 lstW.write(String.format("%6s %8s %s%n", "", "", sl.raw));
@@ -233,7 +233,7 @@ public class Assembler {
         }
 
         int opcode = def.opcode;
-        int mode   = 0;                  // 0=dir,1=imm,2=ind
+        int mode   = 0;
         int operandVal1 = 0;
         int operandVal2 = 0;
 
@@ -243,8 +243,10 @@ public class Assembler {
             else if (op1.endsWith(",I")) { mode = 32; operandVal1 = symbolValue(op1.substring(0, op1.length()-2), sl); }
             else { operandVal1 = symbolValue(op1, sl); }
         }
-
-        int word = mode | (opcode & 0x3F);
+        
+        // | addr mode    | opcode                 |
+        // | b7 | b6 | b5 | b4 | b3 | b2 | b1 | b0 |
+        int word = mode | (opcode & 0x1F);
         
         if (!sl.op2.isBlank()) {
             String op2 = sl.op2;
@@ -254,10 +256,6 @@ public class Assembler {
         }
 
         word = mode | word;
-        //int word1 = (opcode << 4) | (mode & 0xF);
-        // 00000000 00000000 00000000 00001010
-        // 00000000 00000000 00000000 10100000 ( << 4)
-        // 00000000 00000000 00000000 10100001 ( | (1 & 0xF))
         
         String word1 = to16BitString(word);
         String word2 = to16BitString(operandVal1);
