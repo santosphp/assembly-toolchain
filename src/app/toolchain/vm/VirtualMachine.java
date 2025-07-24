@@ -1,23 +1,22 @@
 package app.toolchain.vm;
 
-import java.io.BufferedReader;
-import java.io.FileReader;
-import java.io.IOException;
+import java.io.File;
+import java.io.FileNotFoundException;
 import java.util.List;
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.Queue;
+import java.util.Scanner;
 import java.util.function.Consumer;
+
 
 public class VirtualMachine {
 	
 	private final Queue<Integer> inputBuffer = new LinkedList<>();
 	private Consumer<String> outputConsumer;
-	@SuppressWarnings("unused")
 	private List<Integer> programData;
 	private int mop;
 
-	@SuppressWarnings("unused")
 	private CPU cpu;
 	
 	private boolean running;
@@ -30,49 +29,29 @@ public class VirtualMachine {
 
 	public void loadFromFile(String filePath) {
 		System.out.println("Trying to load from:" + filePath);
-		/*
+
 		try {
 			System.out.println("Loading from file: " + filePath);
 			File myObj = new File(filePath);
 		    Scanner myReader = new Scanner(myObj);
-		    while (myReader.hasNextLine()) {
-		    	try {
-			      int data = myReader.nextInt();
-			      System.out.println(data);
-			      programData.add(data);
-		    	} catch (Error e) {
-					 e.printStackTrace();
-					 continue;
-		    	}
+		    while (myReader.hasNext()) {
+		        try {
+		            if (myReader.hasNextInt()) {
+		                int data = myReader.nextInt();
+		                System.out.println(data);
+		                programData.add(data);
+		            } else {
+		                myReader.next();
+		            }
+		        } catch (Exception e) {
+		            e.printStackTrace();
+		        }
 		    }
 		    myReader.close();
 		  } catch (FileNotFoundException e) {
 		    System.out.println("An error occurred fetching the instructions.");
 		    e.printStackTrace();
-		 }
-		 */
-		try {
-			FileReader myObj = new FileReader(filePath);
-			BufferedReader myReader = new BufferedReader(myObj);
-            String line;
-            
-            while ((line = myReader.readLine()) != null) {
-            	
-                String[] binaryStrings = line.split("\\s+");
-                
-                for (String binary : binaryStrings) {
-                    if (binary.length() == 16) {
-                        int data = Integer.parseInt(binary, 2);
-      			      	System.out.println(data);
-                        programData.add(data);
-                    }
-                }
-            }
-            myReader.close();
-        } catch (IOException e) {
-            System.err.println("An error occurred fetching the instructions.");
-		    e.printStackTrace();
-        }
+		 }		
 		
 		this.cpu.setMemory(new Memory(programData));
 	}
