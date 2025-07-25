@@ -344,11 +344,14 @@ public class CPU {
 	}
 
 	public int peekNextOpcode() {
-		// Get next instruction opcode without increment PC
-		int nextOpcode = memory.read(pc.read()+1);
-		// Return opcode without addressing mode
-		return (nextOpcode & 0x1F);
-	}
+		int previousOpCode = memory.read(pc.read() - 1) & 0x1F;
+		int opCode = memory.read(pc.read()) & 0x1F;
+		
+		if (previousOpCode == 11)
+			return -1;
+		else
+			return opCode;
+		}
 	
 	public Map<String, Integer> getRegistersState() {
 		Map<String, Integer> registersState = new HashMap<>();

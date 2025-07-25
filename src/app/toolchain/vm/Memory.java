@@ -6,6 +6,7 @@ import java.util.ArrayList;
 public class Memory {
 	
 	private int size;
+	@SuppressWarnings("unused")
 	private final int word;
 	private List<Integer> datas = new ArrayList<>();
 	private int base;
@@ -97,6 +98,7 @@ public class Memory {
 	public Register getSp() {
 		return sp;
 	}
+	
 	
 	public int getSize() {
 		return size;

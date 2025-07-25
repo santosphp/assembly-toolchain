@@ -148,6 +148,9 @@ public class VirtualMachine {
 
 		case 8: // WRITE
 			return ("WRITE: Escreve na saída o valor indicado pelo operando1.");
+			
+		case -1: // FINISHED
+			return ("None, program execution was finished.");
 
 		default:
 			return ("Opcode indefinido: " + nextOpcode);
