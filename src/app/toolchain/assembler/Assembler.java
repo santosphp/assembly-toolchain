@@ -85,22 +85,25 @@ public class Assembler {
         this.lc = 0;
     }
 
-    public void assemble(String macroFile, String objPath, String lstPath) throws IOException {
+    public boolean assemble(String macroFile, String objPath, String lstPath) throws IOException {
+    	// To check errors after every step...
+    	// If a method returns true, an error occurred.
     	boolean error;
         error = readInputFile(macroFile);
-        if (!error) {
-        	error = step1();
-        }
+        if (error) { return false; }
+        
+        error = step1();
+        if (error) { return false; }
     	
-    	// Maybe another approach
-    	if(!error) {
-			this.openOutputs();
-			this.writeObjHeader();
-			step2();
-			this.writeObjEnd();
-			this.writeLstFooter();
-			this.closeOutputs();
-    	}
+		this.openOutputs();
+		this.writeObjHeader();
+		error = step2();
+		this.writeObjEnd();
+		this.writeLstFooter();
+		this.closeOutputs();
+        if (error) { return false; }
+        
+        return true;
     }
     
     private boolean step1() throws IOException {
@@ -180,7 +183,7 @@ public class Assembler {
         return false;
     }
     
-    private void step2() throws IOException {
+    private boolean step2() throws IOException {
         for (SrcLine sl : srcLines) {
             if (sl.raw.trim().isEmpty() || sl.raw.charAt(0) == '*') {
                 lstW.write(String.format("%6s %8s %s%n", "", "", sl.raw));
@@ -188,11 +191,12 @@ public class Assembler {
             }
 
             if (isDirective(sl.opcode)) {
-                handleDirective(sl);
+                if(handleDirective(sl)) { return true; }
             } else {
-                handleInstruction(sl);
+                if(handleInstruction(sl)) { return true; }
             }
         }
+        return false;
     }
     
     private boolean readInputFile(String filePath) {
@@ -224,24 +228,32 @@ public class Assembler {
 		return parseError;
     }
 
-    private void handleInstruction(SrcLine sl) throws IOException {
+    private boolean handleInstruction(SrcLine sl) throws IOException {
         InstrDef def = instrSet.get(sl.opcode);
         if (def == null) {              
             lstW.write(String.format("%04X %-8s %s <-- Instrução inválida%n",
                                       sl.address, "", sl.raw));
-            return;
+            return false;
         }
 
         int opcode = def.opcode;
         int mode   = 0;
-        int operandVal1 = 0;
-        int operandVal2 = 0;
+        Integer operandVal1 = 0;
+        Integer operandVal2 = 0;
 
         if (!sl.op1.isBlank()) {
             String op1 = sl.op1;
             if (op1.startsWith("#")) { mode = 128; operandVal1 = valueOf(op1.substring(1)); }
             else if (op1.endsWith(",I")) { mode = 32; operandVal1 = symbolValue(op1.substring(0, op1.length()-2), sl); }
             else { operandVal1 = symbolValue(op1, sl); }
+        }
+        // Symbol not defined ERROR (error already marked, just interrupting execution)
+        if(operandVal1 == null) { return true; }
+        
+        // Value out of bounds ERROR
+        if(operandVal1 > 0xFFFF) {
+        	markError("Valor fora dos limites: Operando1 muito longo para o tamanho de palavra do computador.");
+        	return true;
         }
         
         // | addr mode    | opcode                 |
@@ -254,19 +266,29 @@ public class Assembler {
             else if (op2.endsWith(",I")) { mode = 64; operandVal2 = symbolValue(op2.substring(0, op2.length()-2), sl); }
             else { operandVal2 = symbolValue(op2, sl); }
         }
+        // Symbol not defined ERROR (error already marked, just interrupting execution)
+        if(operandVal2 == null) { return true; }
+        
+        // Value out of bounds ERROR
+        if(operandVal2 > 0xFFFF) {
+        	markError("Valor fora dos limites: Operando2 muito longo para o tamanho de palavra do computador.");
+        	return true;
+        }
 
         word = mode | word;
         
-        String word1 = to16BitString(word);
-        String word2 = to16BitString(operandVal1);
-        String word3 = to16BitString(operandVal2);
+        //String word1 = to16BitString(word);
+        //String word2 = to16BitString(operandVal1);
+        //String word3 = to16BitString(operandVal2);
         
-        String bytes = String.format("%s %s %s", word1, word2, word3);
+        String bytes = String.format("%s %s %s", word & 0xFFFF, operandVal1 & 0xFFFF, operandVal2 & 0xFFFF);
 
-        writeObjText(sl.address, bytes);
+        writeObjText(bytes);
         writeLstLine(sl.address, bytes, sl.raw);
+        return false;
     }
     
+    /*
     private static String to16BitString(int number) {
     	
         String binary = Integer.toBinaryString(number);
@@ -276,13 +298,20 @@ public class Assembler {
         }
         return String.format("%16s", binary).replace(' ', '0');
     }
+	*/
 
-    private void handleDirective(SrcLine sl) throws IOException {
+    private boolean handleDirective(SrcLine sl) throws IOException {
         switch (sl.opcode) {
             case "CONST" -> {
-                String constHex = encodeConst(sl.op1);
-                writeObjText(sl.address, constHex);
-                writeLstLine(sl.address, constHex, sl.raw);
+                String constStr = encodeConst(sl.op1);
+                Integer constInt = Integer.parseInt(constStr);
+                // Value out of bounds ERROR
+                if(constInt > 0xFFFF) {
+                	markError("Valor fora dos limites: Constante muito longa para o tamanho de palavra do computador.");
+                	return true;
+                }
+                writeObjText(constStr);
+                writeLstLine(sl.address, constStr, sl.raw);
             }
             case "SPACE" -> {
                 /* Reserva – apenas listagem */
@@ -293,10 +322,11 @@ public class Assembler {
             }
             default -> writeLstLine(sl.address, "", sl.raw);
         }
+        return false;
     }
     
     private void writeObjHeader() throws IOException { objW.write(String.format("H %-6s %-6d%n", baseName, programStack)); }
-    private void writeObjText(int addr, String bytes) throws IOException { objW.write(String.format("T %04X %s%n", addr, bytes)); }
+    private void writeObjText(String bytes) throws IOException { objW.write(String.format("%s%n", bytes)); }
     private void writeObjEnd() throws IOException { objW.write("E\n"); }
 
     private void writeLstLine(int addr, String code, String src) throws IOException {
@@ -385,9 +415,9 @@ public class Assembler {
         }
     }
 
-    private int symbolValue(String sym, SrcLine src) {
+    private Integer symbolValue(String sym, SrcLine src) {
         Integer v = symbolTable.get(sym);
-        if (v == null) { markError("Símbolo não definido: " + sym + " (linha: " + src.raw + ")"); return 0; }
+        if (v == null) { markError("Símbolo não definido: " + sym + " (linha: " + src.raw + ")"); return null; }
         return v;
     }
 
