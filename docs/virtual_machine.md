@@ -18,3 +18,10 @@
 | STORE    | 07     | 2     | 1        | opd1 <- ACC              | D/In            |
 | SUB      | 06     | 2     | 1        | ACC  <- ACC - opd1       | D/In/Im         |
 | WRITE    | 08     | 2     | 1        | _Output stream_ <- opd1  | D/In/Im         |
+
+| addressing mode | value to add to the instruction        |
+|-----------------|----------------------------------------|
+| Direct          | + 0                                    |
+| Indirect        | + 32 if opd1, +64 if opd2, +98 if both |
+| Immediate       | + 128    operand is the immediate      |
+
