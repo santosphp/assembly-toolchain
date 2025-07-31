@@ -275,7 +275,7 @@ public class CPU {
 			break;
 
 		case 11: // STOP
-
+			vm.notifyProgramFinished();
 			return false;
 
 		case 7: // STORE

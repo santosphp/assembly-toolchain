@@ -121,6 +121,11 @@ public class IDEPanel extends JPanel {
     	    stackPanel.refresh(vm);
     	    controlsPanel.setNextInstruction(vm.peekNextInstruction());
     	});
+    	
+        vm.setOnFinish(() -> {
+        	ioConsolePanel.appendOutput("Program Finished!");
+        	controlsPanel.disableExecutionButtons();
+        });
 
     	vm.setOutputConsumer(text -> {
     	    SwingUtilities.invokeLater(() -> {
@@ -152,6 +157,7 @@ public class IDEPanel extends JPanel {
 
                 toolchain.prepare(sourceFiles);
                 ioConsolePanel.appendOutput("Build was succefull.");
+                controlsPanel.enableExecutionButtons();
     	    } catch (Exception ex) {
     	        ioConsolePanel.appendOutput("Build failed: " + ex.getMessage());
     	        ex.printStackTrace();

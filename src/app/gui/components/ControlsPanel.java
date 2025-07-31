@@ -3,7 +3,6 @@ package app.gui.components;
 import java.awt.BorderLayout;
 import java.awt.FlowLayout;
 
-import javax.swing.AbstractButton;
 import javax.swing.JButton;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
@@ -35,7 +34,9 @@ public class ControlsPanel extends JPanel {
         quickRunButton = Theme.createButton("Quick run");
         runButton = Theme.createButton("Run");
         stepButton = Theme.createButton("Step");
-
+        
+        disableExecutionButtons();
+        
         buttonsPanel.add(buildButton);
         buttonsPanel.add(quickRunButton);
         buttonsPanel.add(runButton);
@@ -54,6 +55,21 @@ public class ControlsPanel extends JPanel {
 	public void setNextInstruction(String instruction) {
         nextInstructionLabel.setText("Next instruction: " + instruction);
     }
+	
+	public void disableExecutionButtons() {
+		buildButton.setEnabled(true);
+        quickRunButton.setEnabled(false);
+        runButton.setEnabled(false);
+        stepButton.setEnabled(false);
+	}
+	
+	public void enableExecutionButtons() {
+		buildButton.setEnabled(true);
+        quickRunButton.setEnabled(true);
+        runButton.setEnabled(true);
+        stepButton.setEnabled(true);
+	}
+	
 	
     public JButton getBuildButton() { return buildButton; }
     public JButton getRunButton() { return runButton; }

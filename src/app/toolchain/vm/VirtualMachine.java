@@ -19,6 +19,7 @@ public class VirtualMachine {
 
 	private CPU cpu;
 	
+    private Runnable onFinish;
 	private boolean running;
 	
 	public VirtualMachine() {
@@ -171,9 +172,15 @@ public class VirtualMachine {
 	public Queue<Integer> getInputBuffer() {
 		return this.inputBuffer;
 	}
-
+	
+	public void setOnFinish(Runnable onFinish) {
+        this.onFinish = onFinish;
+    }
+	
 	public void notifyProgramFinished() {
-		printOutput("Program finished!");
+		if (onFinish != null) {
+			onFinish.run();
+		}
 	}
 
 	public boolean isHalted() {

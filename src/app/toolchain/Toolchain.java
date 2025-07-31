@@ -82,6 +82,7 @@ public class Toolchain {
 		while (!vm.isHalted() && vm.getMop() == 0) {
             vm.step();
         }
+        updateGUI();
 	}
 
 	public void tick() {
