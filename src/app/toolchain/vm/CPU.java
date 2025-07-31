@@ -328,6 +328,8 @@ public class CPU {
 				currentInst.setOperand(1, memory.read(currentInst.getOperand(1)));
 			}
 
+			
+			vm.printOutput(Integer.toString(currentInst.getOperand(1)));
 			// CALL Output exception...
 			System.out.println("Output: " + currentInst.getOperand(1));
 
