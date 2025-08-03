@@ -154,7 +154,10 @@ public class IDEPanel extends JPanel {
                 } else {
                     ioConsolePanel.appendOutput("AVISO: Nenhum arquivo carregado/salvo na Área2.");
                 }
-
+                if (sourceFiles.isEmpty()) {
+                    ioConsolePanel.appendOutput("Nenhum arquivo de entrada válido para build.");
+                    return;
+                }
                 toolchain.prepare(sourceFiles);
                 ioConsolePanel.appendOutput("Build was succefull.");
                 controlsPanel.enableExecutionButtons();
