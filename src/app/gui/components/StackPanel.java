@@ -11,6 +11,7 @@ import javax.swing.JTable;
 import javax.swing.table.DefaultTableModel;
 
 import app.gui.Theme;
+import app.toolchain.vm.Memory;
 import app.toolchain.vm.VirtualMachine; 
 
 public class StackPanel extends JPanel {
@@ -65,17 +66,15 @@ public class StackPanel extends JPanel {
     }
 
     public void refresh(VirtualMachine vm) {
-        tableModel.setRowCount(0); //limpa o modelo da tabela
+        tableModel.setRowCount(0);
 
-        int simulatedStackPointer = 15;		//stackSize temporário
-        //ex via método: int simulatedStackPointer = vm.getStack().getStackPointerValue();
+        Memory memory = vm.getCpu().getMemory();
+        List<Integer> stack = memory.getStackContents();
+        int topo = stack.size();
 
-        for (int i = simulatedStackPointer -1; i >= 0; i--) {	//temporário até termos os métodos
-            int value = 100 + i; 
-
-            String addressDisplay = String.format("SP-%02d", (simulatedStackPointer - 1) - i);
-            String valueDisplay = String.format("%d", value); //valor em Decimal
-            
+        for (int i = topo - 1; i >= 0; i--) {	//percorre de cima para baixo
+            String addressDisplay = String.format("SP-%02d", topo - 1 - i);
+            String valueDisplay = String.valueOf(stack.get(i));
             tableModel.addRow(new Object[]{addressDisplay, valueDisplay});
         }
     }

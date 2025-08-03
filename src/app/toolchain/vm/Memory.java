@@ -94,6 +94,15 @@ public class Memory {
 	    }
 	    System.out.println();
 	}
+	
+	public List<Integer> getStackContents() {	//cria lista auxiliar p/ manipulação no stackPanel
+	    List<Integer> stack = new ArrayList<>();
+	    int topo = sp.read();
+	    for (int i = 1; i <= topo; i++) {
+	        stack.add(datas.get(base + i));
+	    }
+	    return stack;
+	}
 
 	public Register getSp() {
 		return sp;
@@ -103,4 +112,7 @@ public class Memory {
 	public int getSize() {
 		return size;
 	}
+	
+	public int getBase() { 
+		return base; }
 }
