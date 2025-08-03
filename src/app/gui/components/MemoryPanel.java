@@ -76,9 +76,10 @@ public class MemoryPanel extends JPanel {
         for (int i = 0; i < memorySize; i++) {
             int value = memory.read(i);
         	
-            String addressHex = String.format("%04X", i); //endereço em 4 dígitos hexadecimais
+            String addressDec = String.valueOf(i);
             String valueDec = String.valueOf(value);
-            tableModel.addRow(new Object[]{addressHex, valueDec});
+            
+            tableModel.addRow(new Object[]{addressDec, valueDec});
         }
     }
 }
