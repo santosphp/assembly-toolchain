@@ -6,54 +6,53 @@ import java.util.ArrayList;
 public class Memory {
 	
 	private int size;
-	@SuppressWarnings("unused")
-	private final int word;
-	private List<Integer> datas = new ArrayList<>();
-	private int base;
-	private int limit;
+	private List<Integer> memoryCells = new ArrayList<>();
+	private int stackBaseAddress;
+	private int stackMaxSize;
 	private Register sp;
 	
 	public Memory(List<Integer>data){
 		this.size = 1024;
-		this.word = 16;
-		this.base = 2;
-		this.limit = 64;
-		this.sp = new Register(2, 16, "SP");
-		datas.add(limit);
-		datas.add(0);
 		
-		while(datas.size() < limit) {
-			datas.add(0);
-		}
-		//this.datas = data;
-		for(int i=0; i<data.size(); i++) {
-			datas.add(data.get(i));
+		// SP starts with zero to indicate it points to the base of the stack, aka memoryCells[2]
+		this.sp = new Register(0, 16, "SP");
+		this.stackBaseAddress = 2;
+		this.stackMaxSize = 4;
+		
+		// Initializes R0 with stackMaxSize and R1 with 1, simply for debug purposes
+		memoryCells.add(stackMaxSize);
+		memoryCells.add(1);
+		
+		// Fills the stack with zeros, not necessary, but helps with debug
+		while(memoryCells.size() < stackBaseAddress + stackMaxSize) {
+			memoryCells.add(0);
 		}
 		
-		while(datas.size() < size) {
-			datas.add(0);
+		// Loads the program after the stack area
+		memoryCells.addAll(data);
+		
+		// Fills the rest of the memory with zeros
+		while(memoryCells.size() < size) {
+			memoryCells.add(0);
 		}
-		/*
-		datas.set(base, limit);
-		*/
 	}
 	
 	public int read(int address) {
 		if(address < 0 || address >= size) {
 			throw new IndexOutOfBoundsException("Endereço inválido");
 		}
-		return datas.get(address);
+		return memoryCells.get(address);
 	}
 	
 	public void write(int address, int value) {
-		if(address == base) {
+		if(address == stackBaseAddress) {
 			System.out.println("Não pode sobrescrever o endereco base da pilha!");
 			return ; 
 		}
 		if(address < 0 || address >= size) {
 			throw new IndexOutOfBoundsException("Endereço inválido");
 		}
-		datas.set(address, value);
+		memoryCells.set(address, value);
 	}
 	
 	public void push(int value) {
@@ -63,7 +62,7 @@ public class Memory {
 			return ;
 		}
 		sp.loadValue(spValue + 1);
-		datas.set(base + sp.read(), value);
+		memoryCells.set(stackBaseAddress + sp.read(), value);
 	}
 	
 	public int pop(){
@@ -72,13 +71,13 @@ public class Memory {
 			System.out.println("Stack Underflow! Pilha vazia.");
 			return -1;
 		}
-		int value = datas.get(spValue + base);
+		int value = memoryCells.get(spValue + stackBaseAddress);
 		sp.loadValue(spValue - 1);
 		return value;
 	}
 	
 	public boolean checkOverflow() {
-		return sp.read() >= limit;
+		return sp.read() >= stackMaxSize;
 	}
 	
 	public void dumpPilha() {
@@ -90,16 +89,17 @@ public class Memory {
 	    
 	    System.out.print("Pilha (do fundo ao topo): ");
 	    for (int i = 1; i <= topo; i++) {
-	        System.out.print(datas.get(base + i) + " ");
+	        System.out.print(memoryCells.get(stackBaseAddress + i) + " ");
 	    }
 	    System.out.println();
 	}
 	
-	public List<Integer> getStackContents() {	//cria lista auxiliar p/ manipulação no stackPanel
+	// This list will be useful for the GUI
+	public List<Integer> getStackContents() {
 	    List<Integer> stack = new ArrayList<>();
-	    int topo = sp.read();
-	    for (int i = 1; i <= topo; i++) {
-	        stack.add(datas.get(base + i));
+	    int topAddress = sp.read() + stackBaseAddress;
+	    for (int i = topAddress; i >= stackBaseAddress; --i) {
+	        stack.add(memoryCells.get(i));
 	    }
 	    return stack;
 	}
@@ -114,5 +114,5 @@ public class Memory {
 	}
 	
 	public int getBase() { 
-		return base; }
+		return stackBaseAddress; }
 }

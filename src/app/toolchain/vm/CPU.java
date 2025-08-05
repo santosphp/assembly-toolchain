@@ -4,7 +4,6 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class CPU {
-	@SuppressWarnings("unused")
 	private VirtualMachine vm;
 	private Register pc;
 	private Register sp;
@@ -20,16 +19,17 @@ public class CPU {
 		super();
 		this.vm = vm;
 		this.pc = new Register(64, 16, "PC");
-		this.sp = new Register(2, 16, "SP");
+		this.sp = new Register(0, 16, "SP");
 		this.acc = new Register(0, 16, "ACC");
 		this.ri = new Register(0, 16, "RI");
 		this.re = new Register(0, 16, "RE");
 		this.r0 = new Register(0, 16, "R0");
 		this.r1 = new Register(0, 16, "R1");
 	}
-
+	
 	// Methods
 	public Boolean executeInstruction() {
+	    syncMemoryToRegisters();  // Atualiza r0/r1 com o valor da memória
 		
 		Instruction currentInst = new Instruction();
 
@@ -342,6 +342,7 @@ public class CPU {
 			return false;
 		}
 
+	    syncRegistersToMemory();  // Propaga alterações de volta pra memória
 		return true;
 	}
 
@@ -401,66 +402,79 @@ public class CPU {
 		this.r0.loadValue(0);
 		this.r1.loadValue(0);
 	}
-
-	// Getters and Setters
-	public Register getPc() {
-		return pc;
+	
+	public void syncRegistersToMemory() {
+	    memory.write(0, r0.read());
+	    memory.write(1, r1.read());
 	}
 
-	public void setPc(Register pc) {
-		this.pc = pc;
+	public void syncMemoryToRegisters() {
+	    r0.loadValue(memory.read(0));
+	    r1.loadValue(memory.read(1));
+	}
+	
+	// Getters
+	public Register getPc() {
+		return pc;
 	}
 
 	public Register getSp() {
 		return sp;
 	}
 
-	public void setSp(Register sp) {
-		this.sp = sp;
-	}
-
 	public Register getAcc() {
 		return acc;
-	}
-
-	public void setAcc(Register acc) {
-		this.acc = acc;
 	}
 
 	public Register getRi() {
 		return ri;
 	}
 
-	public void setRi(Register ri) {
-		this.ri = ri;
-	}
-
 	public Register getRe() {
 		return re;
 	}
 
+	public Register getR0() {
+	    r0.loadValue(memory.read(0));
+	    return r0;
+	}
+	public Register getR1() {
+	    r1.loadValue(memory.read(1));
+	    return r1;
+	}
+	
+	public Memory getMemory() {
+		return memory;
+	}
+	
+	// Setters
+	public void setPc(Register pc) {
+		this.pc = pc;
+	}
+	
+	public void setSp(Register sp) {
+		this.sp = sp;
+	}
+	
+	public void setAcc(Register acc) {
+		this.acc = acc;
+	}
+
+	public void setRi(Register ri) {
+		this.ri = ri;
+	}
+	
 	public void setRe(Register re) {
 		this.re = re;
 	}
-
-	public Register getR0() {
-		return r0;
-	}
-
+	
 	public void setR0(Register r0) {
-		this.r0 = r0;
+	    this.r0 = r0;
+	    memory.write(0, r0.read());
 	}
-
-	public Register getR1() {
-		return r1;
-	}
-
 	public void setR1(Register r1) {
-		this.r1 = r1;
-	}
-
-	public Memory getMemory() {
-		return memory;
+	    this.r1 = r1;
+	    memory.write(1, r1.read());
 	}
 
 	public void setMemory(Memory memory) {

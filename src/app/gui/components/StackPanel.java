@@ -2,8 +2,7 @@ package app.gui.components;
 
 import java.awt.BorderLayout;
 import java.awt.Font;
-import java.util.Collections; //para Collections.reverse()
-import java.util.List; //para usar List no refresh
+import java.util.List;
 
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
@@ -64,18 +63,22 @@ public class StackPanel extends JPanel {
         table.setShowGrid(false); 
         table.setIntercellSpacing(new java.awt.Dimension(0, 0));
     }
-
+    
     public void refresh(VirtualMachine vm) {
         tableModel.setRowCount(0);
 
         Memory memory = vm.getCpu().getMemory();
         List<Integer> stack = memory.getStackContents();
-        int topo = stack.size();
 
-        for (int i = topo - 1; i >= 0; i--) {	//percorre de cima para baixo
-            String addressDisplay = String.format("SP-%02d", topo - 1 - i);
+        for (int i = 0; i < stack.size(); ++i) {
+        	// 0 is the top
+        	String addressDisplay = i == 0
+			    ? String.format("SP-%02d (base)", i)
+			    : String.format("SP-%02d", i);
             String valueDisplay = String.valueOf(stack.get(i));
             tableModel.addRow(new Object[]{addressDisplay, valueDisplay});
         }
+
     }
+
 }
