@@ -29,4 +29,4 @@
 
 * Por simplicidade, a implementações da pilha farão referência ao ACC ao invés dos Registradores de Propósito Geral.
 
-R0 e R1 serão tratados como endereços na memória, diferentemente dos outros registradores que serão manipulados apenas internamente.
+R0 (memoryCells[0]) e R1 (memoryCells[1]) serão tratados como endereços na memória, diferentemente dos outros registradores que serão manipulados apenas internamente.
