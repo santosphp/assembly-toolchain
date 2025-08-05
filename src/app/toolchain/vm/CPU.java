@@ -270,8 +270,7 @@ public class CPU {
 
 		case 16: // RET
 			
-			acc.loadValue(memory.pop());
-
+			pc.loadValue(memory.pop());
 			break;
 
 		case 11: // STOP
