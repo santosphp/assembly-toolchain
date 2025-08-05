@@ -82,7 +82,7 @@ public class CPU {
 				currentInst.setOperand(1, memory.read(currentInst.getOperand(1)));
 			}
 
-			pc.loadValue(64 + currentInst.getOperand(1));
+			pc.loadValue(currentInst.getOperand(1));
 			break;
 
 		case 5: // BRNEG
@@ -96,7 +96,7 @@ public class CPU {
 			}
 
 			if (acc.read() < 0) {
-				pc.loadValue(64 + currentInst.getOperand(1));
+				pc.loadValue(currentInst.getOperand(1));
 			}
 
 			break;
@@ -112,7 +112,7 @@ public class CPU {
 			}
 
 			if (acc.read() > 0) {
-				pc.loadValue(64 + currentInst.getOperand(1));
+				pc.loadValue(currentInst.getOperand(1));
 			}
 
 			break;
@@ -128,7 +128,7 @@ public class CPU {
 			}
 
 			if (acc.read() == 0) {
-				pc.loadValue(64 + currentInst.getOperand(1));
+				pc.loadValue(currentInst.getOperand(1));
 			}
 
 			break;
@@ -342,7 +342,7 @@ public class CPU {
 			return false;
 		}
 
-	    syncRegistersToMemory();  // Propaga alterações de volta pra memória
+	    syncMemoryToRegisters();  // Atualiza mudanças em R0 e R1 para a CPU
 		return true;
 	}
 
@@ -479,5 +479,6 @@ public class CPU {
 
 	public void setMemory(Memory memory) {
 		this.memory = memory;
+		setPc(new Register(memory.getCodeSegmentBaseAddress(), 16, "PC"));
 	}
 }

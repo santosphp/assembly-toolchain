@@ -10,6 +10,7 @@ public class Memory {
 	private int stackBaseAddress;
 	private int stackMaxSize;
 	private Register sp;
+	private int codeSegmentBaseAddress;
 	
 	public Memory(List<Integer>data){
 		this.size = 1024;
@@ -18,6 +19,7 @@ public class Memory {
 		this.sp = new Register(0, 16, "SP");
 		this.stackBaseAddress = 2;
 		this.stackMaxSize = 4;
+		this.codeSegmentBaseAddress = stackBaseAddress + stackMaxSize;
 		
 		// Initializes R0 with stackMaxSize and R1 with 1, simply for debug purposes
 		memoryCells.add(stackMaxSize);
@@ -113,6 +115,11 @@ public class Memory {
 		return size;
 	}
 	
-	public int getBase() { 
-		return stackBaseAddress; }
+	public int getStackBaseAddress() { 
+		return stackBaseAddress;
+	}
+	
+	public int getCodeSegmentBaseAddress() {
+		return codeSegmentBaseAddress;
+	}
 }

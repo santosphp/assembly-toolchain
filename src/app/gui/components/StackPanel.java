@@ -71,8 +71,8 @@ public class StackPanel extends JPanel {
         List<Integer> stack = memory.getStackContents();
 
         for (int i = 0; i < stack.size(); ++i) {
-        	// 0 is the top
-        	String addressDisplay = i == 0
+        	// SP-00 is the top, i = stack.size() - 1 is the base
+        	String addressDisplay = i == stack.size() - 1
 			    ? String.format("SP-%02d (base)", i)
 			    : String.format("SP-%02d", i);
             String valueDisplay = String.valueOf(stack.get(i));
