@@ -54,7 +54,7 @@ public class VirtualMachine {
 		    e.printStackTrace();
 		 }		
 		
-		this.cpu.setMemory(new Memory(programData));
+		setProgramData(programData);
 	}
 
 	// Is this method being used at all?

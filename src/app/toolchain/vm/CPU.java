@@ -479,5 +479,7 @@ public class CPU {
 	public void setMemory(Memory memory) {
 		this.memory = memory;
 		setPc(new Register(memory.getCodeSegmentBaseAddress(), 16, "PC"));
+		// Mantém o endereço de acesso à memória de dados (registrador interno)
+		setRe(new Register(memory.getCodeSegmentBaseAddress(), 16, "RE"));
 	}
 }
