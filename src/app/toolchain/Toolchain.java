@@ -1,5 +1,6 @@
 package app.toolchain;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -41,7 +42,14 @@ public class Toolchain {
             String baseName = removeExtension(macroFile);
             String objPath = baseName + ".OBJ";
             String lstPath = baseName + ".LST";
-            assembler.assemble(macroFile, objPath, lstPath);
+            try {
+				if(!assembler.assemble(macroFile, objPath, lstPath))
+				{
+					System.out.println("Assembler ended with ERROR!!!");
+				}
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
             objFiles.add(objPath);
         }
     

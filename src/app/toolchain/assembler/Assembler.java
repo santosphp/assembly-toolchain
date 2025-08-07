@@ -54,6 +54,10 @@ public class Assembler {
 
     private String baseName;
     private int programStack;
+    
+    private String macroFile;
+    private String objPath;
+    private String lstPath;
 
     private BufferedWriter objW;
     private BufferedWriter lstW;
@@ -88,14 +92,30 @@ public class Assembler {
     public boolean assemble(String macroFile, String objPath, String lstPath) throws IOException {
     	// To check errors after every step...
     	// If a method returns true, an error occurred.
+    	this.macroFile = macroFile;
+    	this.objPath = objPath;
+    	this.lstPath = lstPath;
+    	
     	boolean error;
+
+		this.openOutputs();
+    	
         error = readInputFile(macroFile);
-        if (error) { return false; }
+        if (error)
+        {
+    		this.writeLstFooter();
+    		this.closeOutputs();
+        	return false;
+        }
         
         error = step1();
-        if (error) { return false; }
+        if (error)
+        {
+    		this.writeLstFooter();
+    		this.closeOutputs();
+        	return false;
+        }
     	
-		this.openOutputs();
 		this.writeObjHeader();
 		error = step2();
 		this.writeObjEnd();
@@ -146,6 +166,8 @@ public class Assembler {
             else // Its a instruction
             {
             	InstrDef def = instrSet.get(sl.opcode);
+
+            	System.out.println(lc + " " + sl.opcode + " " + sl.op1 + " " + sl.op2 + " " + def.size);
             	
             	// Syntax ERROR
             	if (identifyOperendsError(sl, def)) {
@@ -281,7 +303,14 @@ public class Assembler {
         //String word2 = to16BitString(operandVal1);
         //String word3 = to16BitString(operandVal2);
         
-        String bytes = String.format("%s %s %s", word & 0xFFFF, operandVal1 & 0xFFFF, operandVal2 & 0xFFFF);
+        //String bytes = String.format("%s %s %s", word & 0xFFFF, operandVal1, operandVal2 & 0xFFFF);
+        String bytes = Integer.toString(word);
+        if(operandVal1 != 0) {
+            bytes = bytes.concat(String.format(" %d", operandVal1));
+        }
+        if(operandVal2 != 0) {
+        	bytes = bytes.concat(String.format(" %d", operandVal2));
+        }
 
         writeObjText(bytes);
         writeLstLine(sl.address, bytes, sl.raw);
@@ -315,6 +344,7 @@ public class Assembler {
             }
             case "SPACE" -> {
                 /* Reserva – apenas listagem */
+                writeObjText("0");
                 writeLstLine(sl.address, "", sl.raw);
             }
             case "START", "END", "STACK", "INTDEF", "INTUSE" -> {
@@ -346,7 +376,7 @@ public class Assembler {
     	    return null;
         }
         
-        if (!trimmed.matches("[a-zA-Z0-9 ,#@\\*]*")) {
+        if (!trimmed.matches("[a-zA-Z0-9 ,#@\\*\\s]*")) {
     	    markError("Caracter inválido: Unidade sintática não reconhecida (caracter inválido em algum elemento da linha).");
     	    return null;
         }
@@ -424,7 +454,7 @@ public class Assembler {
     private String encodeConst(String token) {
         if (token.startsWith("H'")) return token.substring(2, token.length()-1);
         int v = Integer.parseInt(token);
-        return String.format("%04X", v);
+        return String.format("%d", v);
     }
 
     private boolean isOpcodeOrDir(String t) { return instrSet.containsKey(t.toUpperCase()) || isDirective(t); }
@@ -432,8 +462,8 @@ public class Assembler {
         case "START","END","CONST","SPACE","STACK","INTDEF","INTUSE" -> true; default -> false; }; }
 
     private void openOutputs() throws IOException {
-        objW = Files.newBufferedWriter(Paths.get(baseName + ".OBJ"));
-        lstW = Files.newBufferedWriter(Paths.get(baseName + ".LST"));
+        objW = Files.newBufferedWriter(Paths.get(objPath + ".OBJ"));
+        lstW = Files.newBufferedWriter(Paths.get(lstPath + ".LST"));
     }
     private void closeOutputs() throws IOException { objW.close(); lstW.close(); }
 
@@ -444,7 +474,7 @@ public class Assembler {
     	int operands = 0;
     	if (!sl.op1.isBlank()) {operands += 1;}
     	if (!sl.op2.isBlank()) {operands += 1;}
-    	if(def.size == operands-1) {return false;}
+    	if(def.size-1 == operands) {return false;}
     	return true;
     }
 }
