@@ -19,7 +19,8 @@ public class StackPanel extends JPanel {
     private JTable stackTable;
     private DefaultTableModel tableModel;
 
-    public StackPanel() {
+    @SuppressWarnings("serial")
+	public StackPanel() {
         setLayout(new BorderLayout());
         setBorder(Theme.createTitledBorder("Stack")); 
         setBackground(Theme.BACKGROUND);

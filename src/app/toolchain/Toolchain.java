@@ -86,7 +86,7 @@ public class Toolchain {
 	}
 
 	public void tick() {
-		System.out.println("VM is halted: " + vm.isHalted());
+		// System.out.println("VM is halted: " + vm.isHalted());
 	    if (vm.isHalted()) return; // early exit if already halted
         vm.step();
         updateGUI();

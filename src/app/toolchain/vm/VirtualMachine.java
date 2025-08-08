@@ -39,7 +39,7 @@ public class VirtualMachine {
 		        try {
 		            if (myReader.hasNextInt()) {
 		                int data = myReader.nextInt();
-		                System.out.println(data);
+		                // System.out.println(data);
 		                programData.add((short) data);
 		            } else {
 		                myReader.next();

@@ -17,7 +17,8 @@ public class MemoryPanel extends JPanel {
     private JTable memoryTable; // a tabela visualizável pelo usuário
     private DefaultTableModel tableModel; // O modelo de dados para a tabela, ou seja, a interface dos processos internos do swing
 
-    public MemoryPanel() {
+    @SuppressWarnings("serial")
+	public MemoryPanel() {
         setLayout(new BorderLayout());
         setBorder(Theme.createTitledBorder("Memory")); 
         setBackground(Theme.BACKGROUND);
