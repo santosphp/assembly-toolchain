@@ -53,8 +53,9 @@ public class IDEPanel extends JPanel {
         
         setupLayout();
         setupListeners();
-	    vm.printOutput("Output test succefull!");
-	    vm.notifyProgramFinished(); // Should show in console
+        // Uncommnent to test:
+	    // vm.printOutput("Output test succefull!");
+	    // vm.notifyProgramFinished(); // Should show in console
     }
 
     private void setupLayout() {

@@ -18,13 +18,13 @@ public class CPU {
 	public CPU(VirtualMachine vm) {
 		super();
 		this.vm = vm;
-		this.pc = new Register(64, 16, "PC");
-		this.sp = new Register(0, 16, "SP");
-		this.acc = new Register(0, 16, "ACC");
-		this.ri = new Register(0, 16, "RI");
-		this.re = new Register(0, 16, "RE");
-		this.r0 = new Register(0, 16, "R0");
-		this.r1 = new Register(0, 16, "R1");
+		this.pc = new Register(64, "PC");
+		this.sp = new Register(0, "SP");
+		this.acc = new Register(0, "ACC");
+		this.ri = new Register(0, "RI");
+		this.re = new Register(0, "RE");
+		this.r0 = new Register(0, "R0");
+		this.r1 = new Register(0, "R1");
 	}
 	
 	// Methods
@@ -264,7 +264,7 @@ public class CPU {
 			// Hold execution until inputBuffer contains something
 			while(vm.getInputBuffer().isEmpty()) {}
 			int input = vm.readInput();
-			memory.write(currentInst.getOperand(1), input);
+			memory.write(currentInst.getOperand(1), (short) input);
 
 			break;
 
@@ -478,8 +478,8 @@ public class CPU {
 
 	public void setMemory(Memory memory) {
 		this.memory = memory;
-		setPc(new Register(memory.getCodeSegmentBaseAddress(), 16, "PC"));
+		setPc(new Register(memory.getCodeSegmentBaseAddress(), "PC"));
 		// Mantém o endereço de acesso à memória de dados (registrador interno)
-		setRe(new Register(memory.getCodeSegmentBaseAddress(), 16, "RE"));
+		setRe(new Register(memory.getCodeSegmentBaseAddress(), "RE"));
 	}
 }

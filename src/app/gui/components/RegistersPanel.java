@@ -49,7 +49,7 @@ public class RegistersPanel extends JPanel {
         gbc.anchor = GridBagConstraints.WEST;
         parent.add(label, gbc);
 
-        JTextField valueField = new JTextField("0x0000");
+        JTextField valueField = new JTextField("");
         valueField.setEditable(false);
         valueField.setBackground(Theme.BACKGROUND);
         valueField.setForeground(Theme.FOREGROUND);

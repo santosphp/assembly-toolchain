@@ -12,9 +12,9 @@ import java.util.function.Consumer;
 
 public class VirtualMachine {
 	
-	private final Queue<Integer> inputBuffer = new LinkedList<>();
+	private final Queue<Short> inputBuffer = new LinkedList<>();
 	private Consumer<String> outputConsumer;
-	private List<Integer> programData;
+	private List<Short> programData;
 	private int mop;
 
 	private CPU cpu;
@@ -40,7 +40,7 @@ public class VirtualMachine {
 		            if (myReader.hasNextInt()) {
 		                int data = myReader.nextInt();
 		                System.out.println(data);
-		                programData.add(data);
+		                programData.add((short) data);
 		            } else {
 		                myReader.next();
 		            }
@@ -58,7 +58,7 @@ public class VirtualMachine {
 	}
 
 	// Is this method being used at all?
-	public void setProgramData(List<Integer> programData) {
+	public void setProgramData(List<Short> programData) {
 		// Clean inputBuffer, registers and build new memory data
 	    this.inputBuffer.clear();
 		this.cpu.clearRegisters();
@@ -81,7 +81,7 @@ public class VirtualMachine {
 	}
 
 	public void pushInput(int value) {
-	    inputBuffer.add(value);
+	    inputBuffer.add((short) value);
 	}
 
 	public int readInput() {
@@ -169,7 +169,7 @@ public class VirtualMachine {
 		return this.cpu;
 	}
 	
-	public Queue<Integer> getInputBuffer() {
+	public Queue<Short> getInputBuffer() {
 		return this.inputBuffer;
 	}
 	
@@ -191,5 +191,6 @@ public class VirtualMachine {
 		this.cpu = new CPU(this);
 		this.programData = new ArrayList<>();
 		this.running = true;
+		this.inputBuffer.clear();
 	}
 }

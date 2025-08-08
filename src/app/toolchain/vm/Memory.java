@@ -6,28 +6,28 @@ import java.util.ArrayList;
 public class Memory {
 	
 	private int size;
-	private List<Integer> memoryCells = new ArrayList<>();
+	private List<Short> memoryCells = new ArrayList<>();
 	private int stackBaseAddress;
-	private int stackMaxSize;
+	private short stackMaxSize;
 	private Register sp;
 	private int codeSegmentBaseAddress;
 	
-	public Memory(List<Integer>data){
+	public Memory(List<Short>data){
 		this.size = 1024;
 		
 		// SP starts with zero to indicate it points to the base of the stack, aka memoryCells[2]
-		this.sp = new Register(0, 16, "SP");
+		this.sp = new Register(0, "SP");
 		this.stackBaseAddress = 2;
 		this.stackMaxSize = 4;
 		this.codeSegmentBaseAddress = stackBaseAddress + stackMaxSize;
 		
 		// Initializes R0 with stackMaxSize and R1 with 1, simply for debug purposes
 		memoryCells.add(stackMaxSize);
-		memoryCells.add(1);
+		memoryCells.add((short) 1);
 		
 		// Fills the stack with zeros, not necessary, but helps with debug
 		while(memoryCells.size() < stackBaseAddress + stackMaxSize) {
-			memoryCells.add(0);
+			memoryCells.add((short) 0);
 		}
 		
 		// Loads the program after the stack area
@@ -35,7 +35,7 @@ public class Memory {
 		
 		// Fills the rest of the memory with zeros
 		while(memoryCells.size() < size) {
-			memoryCells.add(0);
+			memoryCells.add((short) 0);
 		}
 	}
 	
@@ -54,7 +54,7 @@ public class Memory {
 		if(address < 0 || address >= size) {
 			throw new IndexOutOfBoundsException("Endereço inválido");
 		}
-		memoryCells.set(address, value);
+		memoryCells.set(address, (short) value);
 	}
 	
 	public void push(int value) {
@@ -64,17 +64,17 @@ public class Memory {
 			return ;
 		}
 		sp.loadValue(spValue + 1);
-		memoryCells.set(stackBaseAddress + sp.read(), value);
+		memoryCells.set(stackBaseAddress + sp.read(), (short) value);
 	}
 	
-	public int pop(){
+	public short pop(){
 		int spValue = sp.read();
 		if (spValue == 0) {
 			System.out.println("Stack Underflow! Pilha vazia.");
 			return -1;
 		}
-		int value = memoryCells.get(spValue + stackBaseAddress);
-		sp.loadValue(spValue - 1);
+		short value = memoryCells.get(spValue + stackBaseAddress);
+		sp.loadValue((short) (spValue - 1));
 		return value;
 	}
 	
@@ -101,7 +101,7 @@ public class Memory {
 	    List<Integer> stack = new ArrayList<>();
 	    int topAddress = sp.read() + stackBaseAddress;
 	    for (int i = topAddress; i >= stackBaseAddress; --i) {
-	        stack.add(memoryCells.get(i));
+	        stack.add((int) memoryCells.get(i));
 	    }
 	    return stack;
 	}
@@ -109,7 +109,6 @@ public class Memory {
 	public Register getSp() {
 		return sp;
 	}
-	
 	
 	public int getSize() {
 		return size;
