@@ -349,7 +349,7 @@ public class CPU {
 		int previousOpCode = memory.read(pc.read() - 1) & 0x1F;
 		int opCode = memory.read(pc.read()) & 0x1F;
 		
-		if (previousOpCode == 11)
+		if (previousOpCode == 11 && vm.isHalted())
 			return -1;
 		else
 			return opCode;
