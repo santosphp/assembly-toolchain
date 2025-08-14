@@ -6,42 +6,44 @@
 
 ## Estrutura
 ```bash
-src/app/
-├── gui
-│   ├── components
-│   │   ├── ControlsPanel.java
-│   │   ├── EditorPanel.java
-│   │   ├── IOConsolePanel.java
-│   │   ├── MemoryPanel.java
-│   │   ├── RegistersPanel.java
-│   │   └── StackPanel.java
-│   ├── IDEPanel.java
-│   ├── MainFrame.java
-│   └── Theme.java
-├── main
-│   └── Main.java
-└── toolchain
-    ├── assembler
-    │   └── Assembler.java
-    ├── linker
-    │   └── Linker.java
-    ├── loader
-    │   └── Loader.java
-    ├── macro
-    │   └── MacroProcessor.java
-    ├── Toolchain.java
-    └── vm
-        ├── CPU.java
-        └── VirtualMachine.java
+src/
+└── app
+    ├── gui
+    │   ├── components
+    │   │   ├── ControlsPanel.java
+    │   │   ├── EditorPanel.java
+    │   │   ├── IOConsolePanel.java
+    │   │   ├── MemoryPanel.java
+    │   │   ├── RegistersPanel.java
+    │   │   └── StackPanel.java
+    │   ├── IDEPanel.java
+    │   ├── MainFrame.java
+    │   └── Theme.java
+    ├── main
+    │   └── Main.java
+    └── toolchain
+        ├── assembler
+        │   └── Assembler.java
+        ├── linker
+        │   └── Linker.java
+        ├── loader
+        │   └── Loader.java
+        ├── macro
+        │   └── MacroProcessor.java
+        ├── Toolchain.java
+        └── vm
+            ├── CPU.java
+            ├── Instruction.java
+            ├── Memory.java
+            ├── Register.java
+            └── VirtualMachine.java
 ```
 
 ## Sumário
 1. [Ponto de partida](#start)
 2. [Modos de Execução](#executionModes)
 3. [Atualização da Interface](#guiUpdate)
-4. [I/O entre GUI e VM](#guiVM)
-5. [Gerência de Arquivos](#files)
-6. [Documentação Detalhada](#docs)
+4. [Documentação Detalhada](#docs)
 
 
 ### 1. Ponto de Partida <a name="start"></a>
@@ -133,7 +135,6 @@ private void updateGUI() {
 }
 ```
 
-### 4. Comunicação I/O entre a GUI e a Máquina Virtual <a name="guiVM"></a>
-### 5. Gerência de Arquivos <a name="files"></a>
-### 6. Documentação Detalhada <a name="docs"></a>
+### 4. Documentação Detalhada <a name="docs"></a>
+[Máquina Virtual](docs/virtual_machine.md)
 

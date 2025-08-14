@@ -17,6 +17,7 @@ public class Toolchain {
     private final VirtualMachine vm;
 
     private Runnable onStep;
+    private Boolean vmDebugMode;
     
     public Toolchain() {
         this.macroProcessor = new MacroProcessor();
@@ -24,9 +25,19 @@ public class Toolchain {
         this.linker = new Linker();
         this.loader = new Loader();
         this.vm = new VirtualMachine();
+        this.vmDebugMode = true;
     }
 
     public void prepare(List<String> sourceFileNames) {
+    	reset();
+    	
+        // Test only the VM with .HPX files
+        if (vmDebugMode) {
+            vm.loadFromFile(sourceFileNames.getFirst());
+            updateGUI();
+            return;
+        }
+
         // 1. Process macros
         List<String> macroOutputs = new ArrayList<>();
         for (String file : sourceFileNames) {
@@ -54,7 +65,11 @@ public class Toolchain {
         loader.load(vm, hpxOut);        
     }
     
-    public void setOnStep(Runnable r) {
+    private void reset() {
+    	vm.reset();
+	}
+
+	public void setOnStep(Runnable r) {
         this.onStep = r;
     }
     
@@ -67,9 +82,11 @@ public class Toolchain {
 		while (!vm.isHalted() && vm.getMop() == 0) {
             vm.step();
         }
+        updateGUI();
 	}
 
 	public void tick() {
+		// System.out.println("VM is halted: " + vm.isHalted());
 	    if (vm.isHalted()) return; // early exit if already halted
         vm.step();
         updateGUI();

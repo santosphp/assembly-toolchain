@@ -3,6 +3,7 @@ package app.gui;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.Insets;
+import java.io.File; // Import File
 import java.util.ArrayList;
 import java.util.List;
 
@@ -25,12 +26,13 @@ public class IDEPanel extends JPanel {
 	private final Toolchain toolchain;
 	private final VirtualMachine vm;
 	private final MemoryPanel memoryPanel;
+	private final StackPanel stackPanel;
     private final EditorPanel editorPanel;
     private final IOConsolePanel ioConsolePanel;
     private final ControlsPanel controlsPanel;
 	private final RegistersPanel registersPanel;
 	
-	private final List<String> sourceFiles = new ArrayList<>();
+	 private final List<String> sourceFiles = new ArrayList<>(); 
 
     private Timer clockTimer;
     private boolean clockRunning = false;
@@ -41,6 +43,7 @@ public class IDEPanel extends JPanel {
         this.vm = toolchain.getVM();
 
         this.memoryPanel = new MemoryPanel();
+        this.stackPanel = new StackPanel();
 
         this.editorPanel = new EditorPanel();
         this.ioConsolePanel = new IOConsolePanel();
@@ -50,8 +53,9 @@ public class IDEPanel extends JPanel {
         
         setupLayout();
         setupListeners();
-	    vm.printOutput("Output test succefull!");
-	    vm.notifyProgramFinished(); // Should show in console
+        // Uncommnent to test:
+	    // vm.printOutput("Output test succefull!");
+	    // vm.notifyProgramFinished(); // Should show in console
     }
 
     private void setupLayout() {
@@ -106,7 +110,7 @@ public class IDEPanel extends JPanel {
 
 	    gbc3.gridy = 2;
 	    gbc3.weighty = 0.55;  // 55%
-	    col3.add(new StackPanel(), gbc3);
+	    col3.add(stackPanel, gbc3);
 
 	    add(col3, gbc);
     }
@@ -115,8 +119,14 @@ public class IDEPanel extends JPanel {
     	toolchain.setOnStep(() -> {
     	    memoryPanel.refresh(vm);
     	    registersPanel.refresh(vm);
+    	    stackPanel.refresh(vm);
     	    controlsPanel.setNextInstruction(vm.peekNextInstruction());
     	});
+    	
+        vm.setOnFinish(() -> {
+        	ioConsolePanel.appendOutput("Program Finished!");
+        	controlsPanel.disableExecutionButtons();
+        });
 
     	vm.setOutputConsumer(text -> {
     	    SwingUtilities.invokeLater(() -> {
@@ -125,16 +135,33 @@ public class IDEPanel extends JPanel {
     	});
     	
     	controlsPanel.getBuildButton().addActionListener(e -> {
-    		editorPanel.saveFile(false);
+            editorPanel.saveFile(false); 
     		
-    		// This doesn't actually work until we manage to settle on
-    		// how to properly handle multiple files, maybe we should
-    		// just do the usual and have two JTextArea editors
-    		
+            sourceFiles.clear();	
     	    ioConsolePanel.clear();
     	    try {
-    	        toolchain.prepare(sourceFiles);
-    	        ioConsolePanel.appendOutput("Build was succefull.");
+                String area1Path = editorPanel.getArea1FilePath(); 
+                if (area1Path != null && new File(area1Path).exists()) { //verifica a existência usando um novo File
+                    sourceFiles.add(area1Path);
+                    ioConsolePanel.appendOutput("Adicionado arquivo da Área1: " + new File(area1Path).getName());
+                } else {
+                    ioConsolePanel.appendOutput("AVISO: Nenhum arquivo carregado/salvo na Área1.");
+                }
+
+                String area2Path = editorPanel.getArea2FilePath(); 
+                if (area2Path != null && new File(area2Path).exists()) {
+                    sourceFiles.add(area2Path);
+                    ioConsolePanel.appendOutput("Adicionado arquivo da Área2: " + new File(area2Path).getName());
+                } else {
+                    ioConsolePanel.appendOutput("AVISO: Nenhum arquivo carregado/salvo na Área2.");
+                }
+                if (sourceFiles.isEmpty()) {
+                    ioConsolePanel.appendOutput("Nenhum arquivo de entrada válido para build.");
+                    return;
+                }
+                toolchain.prepare(sourceFiles);
+                ioConsolePanel.appendOutput("Build was succefull.");
+                controlsPanel.enableExecutionButtons();
     	    } catch (Exception ex) {
     	        ioConsolePanel.appendOutput("Build failed: " + ex.getMessage());
     	        ex.printStackTrace();
