@@ -1,5 +1,6 @@
 package app.toolchain;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -17,7 +18,9 @@ public class Toolchain {
     private final VirtualMachine vm;
 
     private Runnable onStep;
-    private Boolean vmDebugMode;
+    private final Boolean vmDebugMode;
+    private final Boolean macroProcessorDebugMode;
+
     
     public Toolchain() {
         this.macroProcessor = new MacroProcessor();
@@ -25,7 +28,8 @@ public class Toolchain {
         this.linker = new Linker();
         this.loader = new Loader();
         this.vm = new VirtualMachine();
-        this.vmDebugMode = true;
+        this.vmDebugMode = false;
+        this.macroProcessorDebugMode = true;
     }
 
     public void prepare(List<String> sourceFileNames) {
@@ -41,11 +45,15 @@ public class Toolchain {
         // 1. Process macros
         List<String> macroOutputs = new ArrayList<>();
         for (String file : sourceFileNames) {
-            String macroOutPath = "MASMAPRG_" + file + ".ASM";
+        	File f = new File(file);
+        	String parent = f.getParent();
+        	String name = f.getName();
+            String macroOutPath = parent + File.separator + "MASMAPRG_" + name;
             macroProcessor.processFile(file, macroOutPath);
             macroOutputs.add(macroOutPath);
         }
-    
+        if (macroProcessorDebugMode) return;
+        
         // 2. Assemble
         List<String> objFiles = new ArrayList<>();
         for (String macroFile : macroOutputs) {

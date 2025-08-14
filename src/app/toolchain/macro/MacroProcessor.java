@@ -22,11 +22,6 @@ class Pair {
 
 public class MacroProcessor {
 	
-	public static void main(String[] args) {
-		MacroProcessor mp = new MacroProcessor();
-		mp.processFile("src/app/toolchain/macro/macros1.txt", "src/app/toolchain/macro/sla.txt");
-	}
-	
 	private ArrayList<Pair> macroNameTable;
 	private ArrayList<String> macroDefinitionTable;
 	
@@ -139,7 +134,7 @@ public class MacroProcessor {
 		    sc.close();
 		    pw.close();
 		    
-		    System.out.println("gay");
+		    System.out.println("teste");
 		    int i =0;
 		    for(String elem : macroDefinitionTable) {
 		    	i++;
