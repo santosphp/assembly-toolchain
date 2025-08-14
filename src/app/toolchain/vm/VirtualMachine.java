@@ -1,85 +1,68 @@
 package app.toolchain.vm;
 
-import java.io.BufferedReader;
-import java.io.FileReader;
-import java.io.IOException;
+import java.io.File;
+import java.io.FileNotFoundException;
 import java.util.List;
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.Queue;
+import java.util.Scanner;
 import java.util.function.Consumer;
+
 
 public class VirtualMachine {
 	
-	private final Queue<Integer> inputBuffer = new LinkedList<>();
+	private final Queue<Short> inputBuffer = new LinkedList<>();
 	private Consumer<String> outputConsumer;
-	@SuppressWarnings("unused")
-	private List<Integer> programData;
+	private List<Short> programData;
 	private int mop;
 
-	@SuppressWarnings("unused")
 	private CPU cpu;
 	
+    private Runnable onFinish;
 	private boolean running;
 	
 	public VirtualMachine() {
 		this.cpu = new CPU(this);
 		this.programData = new ArrayList<>();
+		this.running = true;
 	}
 
 	public void loadFromFile(String filePath) {
-		/*
+		System.out.println("Trying to load from:" + filePath);
+
 		try {
 			System.out.println("Loading from file: " + filePath);
 			File myObj = new File(filePath);
 		    Scanner myReader = new Scanner(myObj);
-		    while (myReader.hasNextLine()) {
-		    	try {
-			      int data = myReader.nextInt();
-			      System.out.println(data);
-			      programData.add(data);
-		    	} catch (Error e) {
-					 e.printStackTrace();
-					 continue;
-		    	}
+		    while (myReader.hasNext()) {
+		        try {
+		            if (myReader.hasNextInt()) {
+		                int data = myReader.nextInt();
+		                // System.out.println(data);
+		                programData.add((short) data);
+		            } else {
+		                myReader.next();
+		            }
+		        } catch (Exception e) {
+		            e.printStackTrace();
+		        }
 		    }
 		    myReader.close();
 		  } catch (FileNotFoundException e) {
 		    System.out.println("An error occurred fetching the instructions.");
 		    e.printStackTrace();
-		 }
-		 */
-		try {
-			FileReader myObj = new FileReader(filePath);
-			BufferedReader myReader = new BufferedReader(myObj);
-            String line;
-            
-            while ((line = myReader.readLine()) != null) {
-            	
-                String[] binaryStrings = line.split("\\s+");
-                
-                for (String binary : binaryStrings) {
-                    if (binary.length() == 16) {
-                        int data = Integer.parseInt(binary, 2);
-      			      	System.out.println(data);
-                        programData.add(data);
-                    }
-                }
-            }
-            myReader.close();
-        } catch (IOException e) {
-            System.err.println("An error occurred fetching the instructions.");
-		    e.printStackTrace();
-        }
+		 }		
 		
-		this.cpu.setMemory(new Memory(programData));
+		setProgramData(programData);
 	}
 
-	public void setProgramData(List<Integer> programData) {
+	// Is this method being used at all?
+	public void setProgramData(List<Short> programData) {
 		// Clean inputBuffer, registers and build new memory data
 	    this.inputBuffer.clear();
-		this.programData = programData;
 		this.cpu.clearRegisters();
+		this.programData = programData;
 		this.cpu.setMemory(new Memory(programData));
 	}
 
@@ -98,7 +81,7 @@ public class VirtualMachine {
 	}
 
 	public void pushInput(int value) {
-	    inputBuffer.add(value);
+	    inputBuffer.add((short) value);
 	}
 
 	public int readInput() {
@@ -166,6 +149,9 @@ public class VirtualMachine {
 
 		case 8: // WRITE
 			return ("WRITE: Escreve na saída o valor indicado pelo operando1.");
+			
+		case -1: // FINISHED
+			return ("None, program execution was finished.");
 
 		default:
 			return ("Opcode indefinido: " + nextOpcode);
@@ -179,16 +165,32 @@ public class VirtualMachine {
 	public int getMop() {
 		return mop;
 	}
+	public CPU getCpu() {
+		return this.cpu;
+	}
 	
-	public Queue<Integer> getInputBuffer() {
+	public Queue<Short> getInputBuffer() {
 		return this.inputBuffer;
 	}
-
+	
+	public void setOnFinish(Runnable onFinish) {
+        this.onFinish = onFinish;
+    }
+	
 	public void notifyProgramFinished() {
-		printOutput("Program finished!");
+		if (onFinish != null) {
+			onFinish.run();
+		}
 	}
 
 	public boolean isHalted() {
-		return this.running;
+		return !(this.running);
+	}
+
+	public void reset() {
+		this.cpu = new CPU(this);
+		this.programData = new ArrayList<>();
+		this.running = true;
+		this.inputBuffer.clear();
 	}
 }

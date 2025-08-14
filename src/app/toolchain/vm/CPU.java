@@ -4,7 +4,6 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class CPU {
-	@SuppressWarnings("unused")
 	private VirtualMachine vm;
 	private Register pc;
 	private Register sp;
@@ -19,17 +18,18 @@ public class CPU {
 	public CPU(VirtualMachine vm) {
 		super();
 		this.vm = vm;
-		this.pc = new Register(64, 16, "PC");
-		this.sp = new Register(2, 16, "SP");
-		this.acc = new Register(0, 16, "ACC");
-		this.ri = new Register(0, 16, "RI");
-		this.re = new Register(0, 16, "RE");
-		this.r0 = new Register(0, 16, "R0");
-		this.r1 = new Register(0, 16, "R1");
+		this.pc = new Register(64, "PC");
+		this.sp = new Register(0, "SP");
+		this.acc = new Register(0, "ACC");
+		this.ri = new Register(0, "RI");
+		this.re = new Register(0, "RE");
+		this.r0 = new Register(0, "R0");
+		this.r1 = new Register(0, "R1");
 	}
-
+	
 	// Methods
 	public Boolean executeInstruction() {
+	    syncMemoryToRegisters();  // Atualiza r0/r1 com o valor da memória
 		
 		Instruction currentInst = new Instruction();
 
@@ -82,7 +82,7 @@ public class CPU {
 				currentInst.setOperand(1, memory.read(currentInst.getOperand(1)));
 			}
 
-			pc.loadValue(64 + currentInst.getOperand(1));
+			pc.loadValue(currentInst.getOperand(1));
 			break;
 
 		case 5: // BRNEG
@@ -96,7 +96,7 @@ public class CPU {
 			}
 
 			if (acc.read() < 0) {
-				pc.loadValue(64 + currentInst.getOperand(1));
+				pc.loadValue(currentInst.getOperand(1));
 			}
 
 			break;
@@ -112,7 +112,7 @@ public class CPU {
 			}
 
 			if (acc.read() > 0) {
-				pc.loadValue(64 + currentInst.getOperand(1));
+				pc.loadValue(currentInst.getOperand(1));
 			}
 
 			break;
@@ -128,7 +128,7 @@ public class CPU {
 			}
 
 			if (acc.read() == 0) {
-				pc.loadValue(64 + currentInst.getOperand(1));
+				pc.loadValue(currentInst.getOperand(1));
 			}
 
 			break;
@@ -264,18 +264,17 @@ public class CPU {
 			// Hold execution until inputBuffer contains something
 			while(vm.getInputBuffer().isEmpty()) {}
 			int input = vm.readInput();
-			memory.write(currentInst.getOperand(1), input);
+			memory.write(currentInst.getOperand(1), (short) input);
 
 			break;
 
 		case 16: // RET
 			
-			acc.loadValue(memory.pop());
-
+			pc.loadValue(memory.pop());
 			break;
 
 		case 11: // STOP
-
+			vm.notifyProgramFinished();
 			return false;
 
 		case 7: // STORE
@@ -328,6 +327,8 @@ public class CPU {
 				currentInst.setOperand(1, memory.read(currentInst.getOperand(1)));
 			}
 
+			
+			vm.printOutput(Integer.toString(currentInst.getOperand(1)));
 			// CALL Output exception...
 			System.out.println("Output: " + currentInst.getOperand(1));
 
@@ -340,15 +341,19 @@ public class CPU {
 			return false;
 		}
 
+	    syncMemoryToRegisters();  // Atualiza mudanças em R0 e R1 para a CPU
 		return true;
 	}
 
 	public int peekNextOpcode() {
-		// Get next instruction opcode without increment PC
-		int nextOpcode = memory.read(pc.read()+1);
-		// Return opcode without addressing mode
-		return (nextOpcode & 0x1F);
-	}
+		int previousOpCode = memory.read(pc.read() - 1) & 0x1F;
+		int opCode = memory.read(pc.read()) & 0x1F;
+		
+		if (previousOpCode == 11 && vm.isHalted())
+			return -1;
+		else
+			return opCode;
+		}
 	
 	public Map<String, Integer> getRegistersState() {
 		Map<String, Integer> registersState = new HashMap<>();
@@ -396,69 +401,85 @@ public class CPU {
 		this.r0.loadValue(0);
 		this.r1.loadValue(0);
 	}
-
-	// Getters and Setters
-	public Register getPc() {
-		return pc;
+	
+	public void syncRegistersToMemory() {
+	    memory.write(0, r0.read());
+	    memory.write(1, r1.read());
 	}
 
-	public void setPc(Register pc) {
-		this.pc = pc;
+	public void syncMemoryToRegisters() {
+	    r0.loadValue(memory.read(0));
+	    r1.loadValue(memory.read(1));
+	}
+	
+	// Getters
+	public Register getPc() {
+		return pc;
 	}
 
 	public Register getSp() {
 		return sp;
 	}
 
-	public void setSp(Register sp) {
-		this.sp = sp;
-	}
-
 	public Register getAcc() {
 		return acc;
-	}
-
-	public void setAcc(Register acc) {
-		this.acc = acc;
 	}
 
 	public Register getRi() {
 		return ri;
 	}
 
-	public void setRi(Register ri) {
-		this.ri = ri;
-	}
-
 	public Register getRe() {
 		return re;
 	}
 
+	public Register getR0() {
+	    r0.loadValue(memory.read(0));
+	    return r0;
+	}
+	public Register getR1() {
+	    r1.loadValue(memory.read(1));
+	    return r1;
+	}
+	
+	public Memory getMemory() {
+		return memory;
+	}
+	
+	// Setters
+	public void setPc(Register pc) {
+		this.pc = pc;
+	}
+	
+	public void setSp(Register sp) {
+		this.sp = sp;
+	}
+	
+	public void setAcc(Register acc) {
+		this.acc = acc;
+	}
+
+	public void setRi(Register ri) {
+		this.ri = ri;
+	}
+	
 	public void setRe(Register re) {
 		this.re = re;
 	}
-
-	public Register getR0() {
-		return r0;
-	}
-
+	
 	public void setR0(Register r0) {
-		this.r0 = r0;
+	    this.r0 = r0;
+	    memory.write(0, r0.read());
 	}
-
-	public Register getR1() {
-		return r1;
-	}
-
 	public void setR1(Register r1) {
-		this.r1 = r1;
-	}
-
-	public Memory getMemory() {
-		return memory;
+	    this.r1 = r1;
+	    memory.write(1, r1.read());
 	}
 
 	public void setMemory(Memory memory) {
 		this.memory = memory;
+		setPc(new Register(memory.getCodeSegmentBaseAddress(), "PC"));
+		// Mantém o endereço de acesso à memória de dados (registrador interno)
+		setRe(new Register(memory.getCodeSegmentBaseAddress(), "RE"));
 	}
 }
