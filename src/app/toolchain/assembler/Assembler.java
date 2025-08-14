@@ -1,5 +1,10 @@
 package app.toolchain.assembler;
 
+import app.toolchain.Tables;
+import app.toolchain.Tables.definitionEntry;
+import app.toolchain.Tables.useEntry;
+import app.toolchain.Tables.ModoRelocabilidade;
+
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -8,9 +13,11 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Scanner;
+import java.util.Set;
 
 public class Assembler {
 	private static class InstrDef {          // definição de instrução
@@ -51,6 +58,10 @@ public class Assembler {
     private final Map<String,Integer> symbolTable;
     private final Map<String,InstrDef> instrSet;
     private final List<SrcLine> srcLines;
+    
+    private Map<String,definitionEntry> definitionTable;
+	private Map<String,useEntry> useTable;
+	private Set<String> knowExternalSymbols;
 
     private String baseName;
     private int programStack;
@@ -86,21 +97,30 @@ public class Assembler {
         instrSet.put("RET",     new InstrDef(16, 1));
         instrSet.put("PUSH",    new InstrDef(17, 2));
         instrSet.put("POP",     new InstrDef(18, 2));
+        
+        this.definitionTable = new HashMap<>();
+        this.useTable = new HashMap<>();
+        this.knowExternalSymbols = new HashSet<>();
+        
         this.lc = 0;
     }
 
-    public boolean assemble(String macroFile, String objPath, String lstPath) throws IOException {
+    public boolean assemble(String macroFile, String objPath, String lstPath, Tables tables) throws IOException {
     	// To check errors after every step...
     	// If a method returns true, an error occurred.
     	this.macroFile = macroFile;
     	this.objPath = objPath;
     	this.lstPath = lstPath;
     	
+    	this.definitionTable.clear();
+        this.useTable.clear();
+        this.knowExternalSymbols.clear();
+    	
     	boolean error;
 
 		this.openOutputs();
     	
-        error = readInputFile(macroFile);
+        error = readInputFile(this.macroFile);
         if (error)
         {
     		this.writeLstFooter();
@@ -122,6 +142,9 @@ public class Assembler {
 		this.writeLstFooter();
 		this.closeOutputs();
         if (error) { return false; }
+        
+        tables.getDefinitionTables().add(new HashMap<>(this.definitionTable));
+        tables.getUseTables().add(new HashMap<>(this.useTable));
         
         return true;
     }
@@ -149,13 +172,41 @@ public class Assembler {
 	            		hasEndDirective = true;
 	            		break;
 	            	case "INTDEF":
-	            		// ...
+	            		if(!sl.op1.isBlank())
+	            		{
+	            			if(this.definitionTable.get(sl.op1.toUpperCase()) != null)
+	            			{
+	            				markError("Simbolo redefinido: Referência simbólica com definições múltiplas.");
+	            				return true;
+	            			}
+	            			else
+	            			{
+	            				this.definitionTable.put(sl.op1.toUpperCase(), null);
+	            			}
+	            		}
 	            		break;
 	            	case "INTUSE":
-	            		// ...
+	            		if(!sl.label.isBlank())
+	            		{
+	            			if(this.useTable.get(sl.label.toUpperCase()) != null)
+	            			{
+	            				markError("Simbolo redefinido: Referência simbólica com definições múltiplas.");
+	            				return true;
+	            			}
+	            			else
+	            			{
+	            				this.knowExternalSymbols.add(sl.label.toUpperCase());
+	            				//this.useTable.put(sl.op1, new useEntry(this.lc, ModoRelocabilidade.RELATIVO, true));
+	            			}
+	            		}
 	            		break;
 	            	case "CONST","SPACE":
-	            		symbolTable.put(sl.label.toUpperCase(), this.lc);
+	            		if(this.definitionTable.get(sl.label.toUpperCase()) != null)
+	            		{
+            				this.definitionTable.replace(sl.label.toUpperCase(), new definitionEntry(this.lc, ModoRelocabilidade.RELATIVO));
+	            		}
+	            		
+	            		this.symbolTable.put(sl.label.toUpperCase(), this.lc);
 	            		this.lc += 1;
             			break;
 	            	case "STACK":
@@ -221,8 +272,9 @@ public class Assembler {
         return false;
     }
     
-    private boolean readInputFile(String filePath) {
+    private boolean readInputFile(String macroFile) {
     	boolean parseError = false;
+    	String filePath = "files/" + macroFile;
 		try {
 			System.out.println("Loading from file: " + filePath);
 			File myObj = new File(filePath);
@@ -447,7 +499,18 @@ public class Assembler {
 
     private Integer symbolValue(String sym, SrcLine src) {
         Integer v = symbolTable.get(sym);
-        if (v == null) { markError("Símbolo não definido: " + sym + " (linha: " + src.raw + ")"); return null; }
+        if(v == null)
+        {
+        	if(!this.knowExternalSymbols.contains(sym))
+        	{
+        		markError("Símbolo não definido: " + sym + " (linha: " + src.raw + ")");
+        		return null;
+        	}
+        	// TODO: FIX THIS
+        	this.useTable.put(sym, new useEntry(this.lc, ModoRelocabilidade.RELATIVO, false));
+        	
+        	v = 0;
+        }
         return v;
     }
 
@@ -462,8 +525,8 @@ public class Assembler {
         case "START","END","CONST","SPACE","STACK","INTDEF","INTUSE" -> true; default -> false; }; }
 
     private void openOutputs() throws IOException {
-        objW = Files.newBufferedWriter(Paths.get(objPath + ".OBJ"));
-        lstW = Files.newBufferedWriter(Paths.get(lstPath + ".LST"));
+        objW = Files.newBufferedWriter(Paths.get(objPath + this.baseName + ".OBJ"));
+        lstW = Files.newBufferedWriter(Paths.get(lstPath + this.baseName + ".LST"));
     }
     private void closeOutputs() throws IOException { objW.close(); lstW.close(); }
 
