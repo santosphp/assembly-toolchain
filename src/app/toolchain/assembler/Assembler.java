@@ -4,6 +4,7 @@ import app.toolchain.Tables;
 import app.toolchain.Tables.definitionEntry;
 import app.toolchain.Tables.useEntry;
 import app.toolchain.Tables.ModoRelocabilidade;
+import app.toolchain.Tables.Sinal;
 
 import java.io.BufferedWriter;
 import java.io.File;
@@ -196,14 +197,14 @@ public class Assembler {
 	            			else
 	            			{
 	            				this.knowExternalSymbols.add(sl.label.toUpperCase());
-	            				//this.useTable.put(sl.op1, new useEntry(this.lc, ModoRelocabilidade.RELATIVO, true));
+	            				//this.useTable.put(sl.op1, new useEntry(this.lc, ModoRelocabilidade.ABSOLUTO, true));
 	            			}
 	            		}
 	            		break;
 	            	case "CONST","SPACE":
 	            		if(this.definitionTable.get(sl.label.toUpperCase()) != null)
 	            		{
-            				this.definitionTable.replace(sl.label.toUpperCase(), new definitionEntry(this.lc, ModoRelocabilidade.RELATIVO));
+            				this.definitionTable.replace(sl.label.toUpperCase(), new definitionEntry(this.lc, ModoRelocabilidade.ABSOLUTO));
 	            		}
 	            		
 	            		this.symbolTable.put(sl.label.toUpperCase(), this.lc);
@@ -257,16 +258,19 @@ public class Assembler {
     }
     
     private boolean step2() throws IOException {
+    	this.lc = 0;
+    	
         for (SrcLine sl : srcLines) {
             if (sl.raw.trim().isEmpty() || sl.raw.charAt(0) == '*') {
                 lstW.write(String.format("%6s %8s %s%n", "", "", sl.raw));
                 continue;
             }
+        	InstrDef def = instrSet.get(sl.opcode);
 
             if (isDirective(sl.opcode)) {
                 if(handleDirective(sl)) { return true; }
             } else {
-                if(handleInstruction(sl)) { return true; }
+                if(handleInstruction(sl)) { this.lc += def.size; return true; }
             }
         }
         return false;
@@ -498,19 +502,69 @@ public class Assembler {
     }
 
     private Integer symbolValue(String sym, SrcLine src) {
-        Integer v = symbolTable.get(sym);
+    	Integer v = symbolTable.get(sym);
+        // If is not in symbol table
         if(v == null)
         {
-        	if(!this.knowExternalSymbols.contains(sym))
-        	{
-        		markError("Símbolo não definido: " + sym + " (linha: " + src.raw + ")");
-        		return null;
-        	}
-        	// TODO: FIX THIS
-        	this.useTable.put(sym, new useEntry(this.lc, ModoRelocabilidade.RELATIVO, false));
-        	
-        	v = 0;
+	    	
+	    	// useTable segment
+			String symbolName = sym;
+		    int offset = 0;
+		    Sinal operator = Sinal.SOMA;
+	    	
+	    	int plusPos = sym.lastIndexOf('+');
+	        int minusPos = sym.lastIndexOf('-');
+	        
+	    	int operatorPos = Math.max(plusPos, minusPos);
+	
+	    	// If the Symbol has a signal
+	        if (operatorPos > 0) {
+	            // Split the symbol and signal
+	        	symbolName = sym.substring(0, operatorPos).trim();
+	
+	        	// Is not a known external symbol
+	        	if(!this.knowExternalSymbols.contains(sym))
+	        	{
+	        		markError("Símbolo não definido: " + sym + " (linha: " + src.raw + ")");
+	        		return null;
+	        	}
+	            
+	            if(plusPos != -1) {
+	                operator = Sinal.SOMA;
+	            }else {
+	                operator = Sinal.SUBTRACAO;
+	            }
+	            String numberStr = sym.substring(operatorPos + 1).trim();
+	
+	            try {
+	                offset = Integer.parseInt(numberStr);
+	                if (operator == Sinal.SUBTRACAO) {
+	                    offset = -offset;
+	                }
+	
+	            	this.useTable.put(symbolName, new useEntry(this.lc +1, ModoRelocabilidade.ABSOLUTO, operator));
+	            	// Write the offset in object code for linker
+	            	v = offset;
+	
+	            } catch (NumberFormatException e) {
+	        		markError("Deslocamento não reconhecido: " + numberStr + " (linha: " + src.raw + ")");
+	        		return null;
+	            }
+	
+	        } else {
+	        	// Is not a known external symbol
+	        	if(!this.knowExternalSymbols.contains(sym))
+	        	{
+	        		markError("Símbolo não definido: " + sym + " (linha: " + src.raw + ")");
+	        		return null;
+	        	}
+	        	
+	        	this.useTable.put(sym, new useEntry(this.lc +1, ModoRelocabilidade.ABSOLUTO, Sinal.SOMA));
+	        	// offset is 0 by default
+	        	v = offset;
+	        }
         }
+
         return v;
     }
 

@@ -10,8 +10,12 @@ public class Tables {
 	    ABSOLUTO,
 	    RELATIVO
 	}
+	public enum Sinal {
+	    SOMA,
+	    SUBTRACAO
+	}
 	public record definitionEntry(int endereco, ModoRelocabilidade modo) {}
-	public record useEntry(int lc, ModoRelocabilidade modo, boolean signal) {}
+	public record useEntry(int lc, ModoRelocabilidade modo, Sinal signal) {}
 	
 	private List<Map<String,definitionEntry>> definitionTables;
 	private List<Map<String,useEntry>> useTables;
