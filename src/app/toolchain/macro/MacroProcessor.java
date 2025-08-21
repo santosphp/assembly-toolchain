@@ -8,6 +8,7 @@ import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.Scanner;
 
+
 class Pair { 
 	public String key;
 	public int value;
@@ -21,6 +22,12 @@ class Pair {
 
 
 public class MacroProcessor {
+	/*
+	public static void main(String[] args) {
+		MacroProcessor mp = new MacroProcessor();
+		mp.processFile("test_files/asm/anexo2SemLabel.ASM", "test_files/asm/saida.ASM");
+	}
+	*/
 	
 	private ArrayList<Pair> macroNameTable;
 	private ArrayList<String> macroDefinitionTable;
@@ -29,9 +36,11 @@ public class MacroProcessor {
 		int temp; 
 		String aux;
 		
+		System.out.println(mc);
+		
 		// ALA - Argument array list 
-		String[] args = mc.split(" ");
-		String[] params = macroDefinitionTable.get(macroNameTable.get(macroIndex).value).split(" ");
+		String[] args = mc.replaceAll(",", " ").replaceAll("  ", " ").split(" ");
+		String[] params = macroDefinitionTable.get(macroNameTable.get(macroIndex).value).replaceAll(",", " ").replaceAll("  ", " ").split(" ");
 		
 		for(int i = macroNameTable.get(macroIndex).value+1; true; i++) {
 			aux = macroDefinitionTable.get(i);
@@ -69,7 +78,6 @@ public class MacroProcessor {
 			for(int j = 0; j< args.length; j++) {
 				temp = temp.replaceAll(params[j], args[j]);
 			}
-			System.out.println(temp);
 			macroDefinitionTable.add(temp);
 			if(temp.equals("MACRO")) aux++;
 	    	if(temp.equals("MEND")) {
@@ -101,12 +109,15 @@ public class MacroProcessor {
 		try {
 			System.out.println("Loading from file: " + file);
 			File in = new File(file);
+
 			File out = new File(macroOutPath);
 		    Scanner sc = new Scanner(in);
+
 		    PrintWriter pw = new PrintWriter(new FileWriter(out));
 		    
-		    while (sc.hasNextLine()) {
-		    	aux = sc.nextLine();
+		    while (sc.hasNext()) {
+		    	aux = sc.next().stripLeading().stripTrailing();
+
 		    	if(mode == 0) { // normal
 		    		temp = isMacro(aux);
 		    		if(aux.equals("MACRO")) {
@@ -134,7 +145,7 @@ public class MacroProcessor {
 		    sc.close();
 		    pw.close();
 		    
-		    System.out.println("teste");
+		    /*
 		    int i =0;
 		    for(String elem : macroDefinitionTable) {
 		    	i++;
@@ -144,6 +155,7 @@ public class MacroProcessor {
 		    for(Pair elem : macroNameTable) {
 		    	System.out.println(elem.key);
 		    }
+		    */
 		  } catch (FileNotFoundException e) {
 		    System.out.println("An error occurred fetching the macros.");
 		    e.printStackTrace();
