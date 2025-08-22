@@ -64,10 +64,31 @@ public class Toolchain {
         // 3. Link
         String finalName = removeExtension(sourceFileNames.getFirst());
         String hpxOut = finalName + ".HPX";
-        linker.link(objFiles, hpxOut);
+        linker.link(objFiles, tables, true, 0, hpxOut);
     
         // 4. Load into VM
         loader.load(vm, hpxOut);        
+    }
+    
+    // Test Method for assembler and linker
+    public void testAssemblerLinker()
+    {
+	    List<String> modules = new ArrayList<>(2);
+	    modules.add("prog");
+	    modules.add("math");
+	    
+	    System.out.println("Assembling...");
+	    for (String module : modules)
+	    {
+		    try {
+				this.assembler.assemble(module + ".txt", "files/object", "files/list", tables);
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+	    }
+
+	    System.out.println("\nLinking...");
+		this.linker.link(modules, this.tables, true, 0, modules.get(0));
     }
     
     public void setOnStep(Runnable r) {
@@ -98,4 +119,5 @@ public class Toolchain {
 	// Getters and setters
     public VirtualMachine getVM() { return vm; }
     public Assembler getAssembler() { return assembler; }
+    public Linker getLinker() { return linker; }
 }
