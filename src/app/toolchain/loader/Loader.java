@@ -1,15 +1,21 @@
 package app.toolchain.loader;
 
 import app.toolchain.vm.VirtualMachine;
+import app.toolchain.Tables;
 import app.toolchain.vm.Memory;
 
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Scanner;
 
 public class Loader {
+    private Tables tables;
+    public Loader(Tables tables) {
+        this.tables = tables;
+    }
 
     public void load(VirtualMachine vm, String hpxOut) {
         if (vm == null || hpxOut == null) {
@@ -49,10 +55,38 @@ public class Loader {
             memory.write(enderecoEficaz + i, code.get(i));
         }
 
-        // 4. Relocação dinâmica (simples, pois não há tabela de símbolos/relocations reais)
+        // 4. Relocação dinâmica usando tabelas
         if (relocMode == 0) {
-            // Aqui você faria a atualização de símbolos e relocations, se existissem.
-            // Como não há, apenas marcamos como relocacionado (simulado).
+            // 4.1 Atualizar endereços na tabela de definição
+            for (Map<String, Tables.definitionEntry> defTable : tables.getDefinitionTables()) {
+                for (Map.Entry<String, Tables.definitionEntry> entry : defTable.entrySet()) {
+                    Tables.definitionEntry def = entry.getValue();
+                    int novoEndereco = def.endereco() + enderecoEficaz;
+                    defTable.put(entry.getKey(), new Tables.definitionEntry(novoEndereco, def.modo()));
+                }
+            }
+
+            // 4.2 Aplicar relocations
+            if (tables.getFinalRelocationTable() != null) {
+                for (Tables.relocationEntry reloc : tables.getFinalRelocationTable()) {
+                    // Encontra o endereço real do símbolo
+                    int enderecoSimbolo = -1;
+                    for (Map<String, Tables.definitionEntry> defTable : tables.getDefinitionTables()) {
+                        if (defTable.containsKey(reloc.symbolName())) {
+                            enderecoSimbolo = defTable.get(reloc.symbolName()).endereco();
+                            break;
+                        }
+                    }
+                    if (enderecoSimbolo == -1) continue; // símbolo não encontrado
+
+                    // Lê valor original da memória
+                    int valorOriginal = memory.read(enderecoEficaz + reloc.offset());
+                    // Atualiza valor (exemplo: soma endereço do símbolo)
+                    memory.write(enderecoEficaz + reloc.offset(), valorOriginal + enderecoSimbolo);
+                }
+            }
+
+            // 4.3 Marcar como relocacionado (simulado)
             relocMode = 1;
         }
 
