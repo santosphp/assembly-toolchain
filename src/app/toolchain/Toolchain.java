@@ -1,6 +1,10 @@
 package app.toolchain;
 
+<<<<<<< HEAD
 import java.io.IOException;
+=======
+import java.io.File;
+>>>>>>> feature/macros
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -22,7 +26,9 @@ public class Toolchain {
     private Tables tables;
 
     private Runnable onStep;
-    private Boolean vmDebugMode;
+    private final Boolean vmDebugMode;
+    private final Boolean macroProcessorDebugMode;
+
     
     public Toolchain() {
         this.macroProcessor = new MacroProcessor();
@@ -30,8 +36,9 @@ public class Toolchain {
         this.linker = new Linker();
         this.loader = new Loader();
         this.vm = new VirtualMachine();
-        this.vmDebugMode = true;
         this.tables = new Tables();
+        this.vmDebugMode = false;
+        this.macroProcessorDebugMode = true;
     }
 
     public void prepare(List<String> sourceFileNames) {
@@ -47,14 +54,22 @@ public class Toolchain {
         // 1. Process macros
         List<String> macroOutputs = new ArrayList<>();
         for (String file : sourceFileNames) {
-            String macroOutPath = "MASMAPRG_" + file + ".ASM";
+        	File f = new File(file);
+        	String parent = f.getParent();
+        	String name = f.getName();
+            String macroOutPath = parent + File.separator + "MASMAPRG_" + name;
             macroProcessor.processFile(file, macroOutPath);
             macroOutputs.add(macroOutPath);
         }
+<<<<<<< HEAD
         
         // Clean previous tables
         tables.cleanTables();
     
+=======
+        if (macroProcessorDebugMode) return;
+        
+>>>>>>> feature/macros
         // 2. Assemble
         List<String> objFiles = new ArrayList<>();
         for (String macroFile : macroOutputs) {
