@@ -1,13 +1,16 @@
 package app.toolchain;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 import app.toolchain.assembler.Assembler;
 import app.toolchain.linker.Linker;
 import app.toolchain.loader.Loader;
 import app.toolchain.macro.MacroProcessor;
 import app.toolchain.vm.VirtualMachine;
+import app.toolchain.Tables;
 
 public class Toolchain {
     private final MacroProcessor macroProcessor;
@@ -15,6 +18,8 @@ public class Toolchain {
     private final Linker linker;
     private final Loader loader;
     private final VirtualMachine vm;
+    
+    private Tables tables;
 
     private Runnable onStep;
     private Boolean vmDebugMode;
@@ -26,6 +31,7 @@ public class Toolchain {
         this.loader = new Loader();
         this.vm = new VirtualMachine();
         this.vmDebugMode = true;
+        this.tables = new Tables();
     }
 
     public void prepare(List<String> sourceFileNames) {
@@ -45,6 +51,9 @@ public class Toolchain {
             macroProcessor.processFile(file, macroOutPath);
             macroOutputs.add(macroOutPath);
         }
+        
+        // Clean previous tables
+        tables.cleanTables();
     
         // 2. Assemble
         List<String> objFiles = new ArrayList<>();
@@ -52,7 +61,14 @@ public class Toolchain {
             String baseName = removeExtension(macroFile);
             String objPath = baseName + ".OBJ";
             String lstPath = baseName + ".LST";
-            assembler.assemble(macroFile, objPath, lstPath);
+            try {
+				if(!assembler.assemble(macroFile, objPath, lstPath, tables))
+				{
+					System.out.println("Assembler ended with ERROR!!!");
+				}
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
             objFiles.add(objPath);
         }
     
