@@ -66,7 +66,9 @@ public class Toolchain {
         for (String macroFile : macroOutputs) {
             File mf = new File(macroFile).getAbsoluteFile();
             String baseName = removeExtension(mf.getName());
-            
+
+            // Strip MASMAPRG_ prefix
+            baseName = baseName.substring("MASMAPRG_".length());
             File objFile = new File(mf.getParentFile(), baseName + ".OBJ");
             File lstFile = new File(mf.getParentFile(), baseName + ".LST");
 
@@ -99,8 +101,9 @@ public class Toolchain {
     }
     
     private String removeExtension(String filename) {
-		// TODO Auto-generated method stub
-		return null;
+	    int dotIndex = filename.lastIndexOf('.');
+	    if (dotIndex >= 0) return filename.substring(0, dotIndex);
+	    return filename;
 	}
 
 	public void runFast() {

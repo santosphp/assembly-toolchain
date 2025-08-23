@@ -579,8 +579,8 @@ public class Assembler {
         case "START","END","CONST","SPACE","STACK","INTDEF","INTUSE" -> true; default -> false; }; }
 
     private void openOutputs() throws IOException {
-        objW = Files.newBufferedWriter(Paths.get(objPath + this.baseName + ".OBJ"));
-        lstW = Files.newBufferedWriter(Paths.get(lstPath + this.baseName + ".LST"));
+	    objW = Files.newBufferedWriter(Paths.get(objPath));
+	    lstW = Files.newBufferedWriter(Paths.get(lstPath));
     }
     private void closeOutputs() throws IOException { objW.close(); lstW.close(); }
 
