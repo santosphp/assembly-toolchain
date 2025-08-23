@@ -1,0 +1,21 @@
+// Use stackMaxSize = 4;
+// com entrada 5, 3, -1
+// início do loop de leitura
+  12 1          // READ   -> lê para R1
+  3 1           // LOAD   -> ACC <- R1
+  17            // PUSH   -> empilha ACC
+  130 1         // ADD    -> ACC <- ACC + 1
+  4 19          // BRZERO -> se for -1, vai para endereço 19 (fim da leitura)
+  3 1           // LOAD   -> ACC <- R1 (useless line)
+  0 6           // BR 6   -> volta para início do loop
+
+// endereço 19:
+  18            // POP    -> valor do topo -> ACC
+  7 1           // STORE  -> R1 <- ACC
+  8 1           // WRITE  -> imprime R1
+  134 5         // ADD    -> ACC <- ACC - 5 
+  4 30          // BRZERO -> se for 5, encerra, vai para 30
+  0 19          // BR 19  -> repete a leitura da pilha
+
+// endereço 30:
+  11            // STOP
