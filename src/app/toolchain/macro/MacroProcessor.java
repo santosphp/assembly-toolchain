@@ -22,12 +22,14 @@ class Pair {
 
 
 public class MacroProcessor {
+	
 	/*
 	public static void main(String[] args) {
 		MacroProcessor mp = new MacroProcessor();
 		mp.processFile("test_files/asm/anexo2SemLabel.ASM", "test_files/asm/saida.ASM");
 	}
 	*/
+	
 	
 	private ArrayList<Pair> macroNameTable;
 	private ArrayList<String> macroDefinitionTable;
@@ -109,19 +111,17 @@ public class MacroProcessor {
 		try {
 			System.out.println("Loading from file: " + file);
 			File in = new File(file);
-
 			File out = new File(macroOutPath);
 		    Scanner sc = new Scanner(in);
-
 		    PrintWriter pw = new PrintWriter(new FileWriter(out));
 		    
-		    while (sc.hasNext()) {
-		    	aux = sc.next().stripLeading().stripTrailing();
-
+		    while (sc.hasNextLine()) {
+		    	aux = sc.nextLine().trim();
+		    		    	
 		    	if(mode == 0) { // normal
 		    		temp = isMacro(aux);
 		    		if(aux.equals("MACRO")) {
-				    	aux = sc.nextLine();
+				    	aux = sc.nextLine().trim();
 				    	macroNameTable.add(new Pair(aux.split(" ")[0], macroDefinitionTable.size()));
 				    	macroDefinitionTable.add(aux);
 				    	mode = 1;
