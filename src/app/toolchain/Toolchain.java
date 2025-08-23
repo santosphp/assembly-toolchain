@@ -1,20 +1,14 @@
 package app.toolchain;
 
-<<<<<<< HEAD
 import java.io.IOException;
-=======
 import java.io.File;
->>>>>>> feature/macros
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
-
 import app.toolchain.assembler.Assembler;
 import app.toolchain.linker.Linker;
 import app.toolchain.loader.Loader;
 import app.toolchain.macro.MacroProcessor;
 import app.toolchain.vm.VirtualMachine;
-import app.toolchain.Tables;
 
 public class Toolchain {
     private final MacroProcessor macroProcessor;
@@ -28,6 +22,7 @@ public class Toolchain {
     private Runnable onStep;
     private final Boolean vmDebugMode;
     private final Boolean macroProcessorDebugMode;
+    private final Boolean assemblerDebugMode;
 
     
     public Toolchain() {
@@ -38,7 +33,8 @@ public class Toolchain {
         this.vm = new VirtualMachine();
         this.tables = new Tables();
         this.vmDebugMode = false;
-        this.macroProcessorDebugMode = true;
+        this.macroProcessorDebugMode = false;
+        this.assemblerDebugMode = true;
     }
 
     public void prepare(List<String> sourceFileNames) {
@@ -61,31 +57,29 @@ public class Toolchain {
             macroProcessor.processFile(file, macroOutPath);
             macroOutputs.add(macroOutPath);
         }
-<<<<<<< HEAD
-        
-        // Clean previous tables
-        tables.cleanTables();
-    
-=======
         if (macroProcessorDebugMode) return;
         
->>>>>>> feature/macros
         // 2. Assemble
+        tables.cleanTables(); // Clean previous tables
         List<String> objFiles = new ArrayList<>();
+
         for (String macroFile : macroOutputs) {
-            String baseName = removeExtension(macroFile);
-            String objPath = baseName + ".OBJ";
-            String lstPath = baseName + ".LST";
+            File mf = new File(macroFile).getAbsoluteFile();
+            String baseName = removeExtension(mf.getName());
+            
+            File objFile = new File(mf.getParentFile(), baseName + ".OBJ");
+            File lstFile = new File(mf.getParentFile(), baseName + ".LST");
+
             try {
-				if(!assembler.assemble(macroFile, objPath, lstPath, tables))
-				{
-					System.out.println("Assembler ended with ERROR!!!");
-				}
-			} catch (IOException e) {
-				e.printStackTrace();
-			}
-            objFiles.add(objPath);
+                if (!assembler.assemble(mf.getPath(), objFile.getPath(), lstFile.getPath(), tables)) {
+                    System.out.println("Assembler ended with ERROR!!!");
+                }
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+            objFiles.add(objFile.getPath());
         }
+        if (assemblerDebugMode) return;
     
         // 3. Link
         String finalName = removeExtension(sourceFileNames.getFirst());

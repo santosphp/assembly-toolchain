@@ -278,7 +278,7 @@ public class Assembler {
     
     private boolean readInputFile(String macroFile) {
     	boolean parseError = false;
-    	String filePath = "files/" + macroFile;
+    	String filePath = macroFile;
 		try {
 			System.out.println("Loading from file: " + filePath);
 			File myObj = new File(filePath);
