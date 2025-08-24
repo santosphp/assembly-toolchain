@@ -1,8 +1,8 @@
 START MAIN
 STACK 16
 
-* MAKE_POWER @3 -> POWER @2 returns 2^3
-* MAKE_POWER @2 -> POWER @3 returns 3^2
+* MAKE_POWER 3 -> POWER 2 returns 2^3
+* MAKE_POWER 2 -> POWER 3 returns 3^2
 MACRO
   MAKE_POWER &EXP
   MACRO
@@ -28,7 +28,7 @@ MEND
 
 * main function
 MAIN READ N
-     MAKE_POWER @2
+     MAKE_POWER 2
 
      CALL SUMPOW
      WRITE SUM
