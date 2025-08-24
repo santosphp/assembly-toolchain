@@ -425,42 +425,59 @@ public class Assembler {
     }
     
     private SrcLine parseLine(String line) {
-        String trimmed = line.trim();
-        
-        if (trimmed.length() > 80) {
-    	    markError("Linha muito longa: Não deve haver mais de 80 caracteres numa linha.");
-    	    return null;
-        }
-        
-        if (!trimmed.matches("[a-zA-Z0-9 ,#@\\*\\s]*")) {
-    	    markError("Caracter inválido: Unidade sintática não reconhecida (caracter inválido em algum elemento da linha).");
-    	    return null;
-        }
-        
-        if (trimmed.isEmpty()) return null;
-        
-        SrcLine sl = new SrcLine(line);
-        
-        if (trimmed.charAt(0) != '*') {
+		String trimmed = line.trim();
 
-		    // Tokenização básica por espaços
-		    String[] toks = trimmed.split("\\s+");
-		    int idx = 0;
-		
-		    // label? (present se NÃO for opcode ou diretiva)
-		    if (!isOpcodeOrDir(toks[idx])) {
-		        sl.label = toks[idx++];
-		    }
-		
-		    sl.opcode = toks[idx++].toUpperCase();
-		    if (idx < toks.length) sl.op1 = toks[idx++];
-		    if (idx < toks.length) sl.op2 = toks[idx];
-		    
-		    
-        }
+		if (trimmed.length() > 80) {
+			markError("Linha muito longa: Não deve haver mais de 80 caracteres numa linha.");
+			return null;
+		}
 
-        return sl;
-    }
+		//if (!trimmed.matches("^[a-zA-Z0-9 ,#@_\\s]*(\\*.*)?$")) {
+		if (!trimmed.matches("^[a-zA-Z0-9 ,#@&_\\s]*(\\*.*)?$")) {
+			markError(
+					"Caracter inválido: Unidade sintática não reconhecida (caracter inválido em algum elemento da linha).");
+			return null;
+		}
+
+		SrcLine sl = new SrcLine(line);
+		sl.label = "";
+		sl.opcode = "";
+		sl.op1 = "";
+		sl.op2 = "";
+
+		if (!trimmed.isEmpty()) {
+			String linhaSemComentario = trimmed;
+			int commentIndex = linhaSemComentario.indexOf('*');
+
+			if (commentIndex != -1) {
+				linhaSemComentario = linhaSemComentario.substring(0, commentIndex);
+			}
+
+			linhaSemComentario = linhaSemComentario.trim();
+
+			if (!linhaSemComentario.isEmpty()) {
+
+				String[] toks = linhaSemComentario.split("\\s+");
+				int idx = 0;
+
+				if (!isOpcodeOrDir(toks[idx])) {
+					sl.label = toks[idx++];
+				}
+
+				if (idx < toks.length) {
+					sl.opcode = toks[idx++].toUpperCase();
+				}
+				if (idx < toks.length) {
+					sl.op1 = toks[idx++];
+				}
+				if (idx < toks.length) {
+					sl.op2 = toks[idx];
+				}
+			}
+		}
+
+		return sl;
+	}
 
     /*
     private int valueOf(String token) {
