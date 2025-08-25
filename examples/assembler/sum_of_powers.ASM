@@ -22,7 +22,7 @@ MACRO
             ADD #1
             STORE COUNT
             BR &PWR_LOOP
-  &PWR_END
+  &PWR_END  ADD #0
   MEND
 MEND
 
@@ -51,7 +51,7 @@ LOOP_START LOAD I
            ADD #1
            STORE I
            BR LOOP_START
-LOOP_END
+LOOP_END   ADD #0
            RET
 
 * Memory allocation
