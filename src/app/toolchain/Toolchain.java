@@ -34,7 +34,7 @@ public class Toolchain {
         this.vm = new VirtualMachine();
         this.vmDebugMode = false;
         this.macroProcessorDebugMode = false;
-        this.assemblerDebugMode = true;
+        this.assemblerDebugMode = false;
     }
 
     public void prepare(List<String> sourceFileNames) {
@@ -89,7 +89,7 @@ public class Toolchain {
         linker.link(objFiles, tables, true, 0, hpxOut);
     
         // 4. Load into VM
-        loader.load(vm, hpxOut);        
+        loader.load(vm, hpxOut); 
     }
     
     private void reset() {

@@ -241,7 +241,7 @@ public class Linker {
 	public boolean getHeaderInfo(String modulo)
 	{
 		try {
-	    	String filePath = "files/object/" + modulo + ".OBJ";
+	    	String filePath = modulo;
 			System.out.println("Loading from file: " + filePath);
 			File myObj = new File(filePath);
 		    Scanner myReader = new Scanner(myObj);
@@ -297,7 +297,7 @@ public class Linker {
 		System.out.println("Trying to load from:" + module);
 
 		try {
-	    	String filePath = "files/object/" + module + ".OBJ";
+	    	String filePath = module;
 			System.out.println("Loading from file: " + filePath);
 			File myObj = new File(filePath);
 		    Scanner myReader = new Scanner(myObj);
