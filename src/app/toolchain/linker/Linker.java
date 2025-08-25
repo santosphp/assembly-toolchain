@@ -9,6 +9,7 @@ import app.toolchain.Tables.Sinal;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
+import java.io.PrintWriter;
 import java.io.DataOutputStream;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -107,13 +108,13 @@ public class Linker {
         // 5. Salvar arquivo .HPX
         try {
             File hpxFile = new File(hpxOut);
-            try (DataOutputStream dos = new DataOutputStream(new FileOutputStream(hpxFile))) {
-                dos.writeInt(this.baseAddress); // Endereço inicial
+            try (PrintWriter writer = new PrintWriter(hpxFile)) {
+                writer.println(this.baseAddress); // Endereço inicial
                 for (Short code : this.codigoFinal) {
-                    dos.writeShort(code);
+                    writer.println(code);
                 }
             }
-
+            
             System.out.println("Arquivo HPX salvo com sucesso: " + hpxFile.getAbsolutePath());
         } catch (Exception e) {
             System.out.println("Erro ao salvar arquivo HPX: " + e.getMessage());
