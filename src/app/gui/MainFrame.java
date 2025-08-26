@@ -12,9 +12,11 @@ public class MainFrame extends JFrame {
 
 	public MainFrame(Toolchain toolchain) {
 		super("Educational Assembly Toolchain");
-        setSize(1024, 768);
+        setSize(1366, 768);
         setDefaultCloseOperation(EXIT_ON_CLOSE);  // Close application on X
         setLocationRelativeTo(null); // Center on screen
+        //setResizable(false);
+        
         
         IDEPanel idePanel = new IDEPanel(toolchain);
         
