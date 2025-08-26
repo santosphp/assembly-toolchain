@@ -1,5 +1,6 @@
 package app.toolchain.vm;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -18,6 +19,7 @@ public class CPU {
 	public CPU(VirtualMachine vm) {
 		super();
 		this.vm = vm;
+		this.memory = new Memory(new ArrayList<>());
 		this.pc = new Register(64, "PC");
 		this.sp = new Register(0, "SP");
 		this.acc = new Register(0, "ACC");
