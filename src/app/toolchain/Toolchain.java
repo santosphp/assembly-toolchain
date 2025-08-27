@@ -89,7 +89,8 @@ public class Toolchain {
         Integer finalStackSize = linker.link(objFiles, tables, true, 0, hpxOut);
     
         // 4. Load into VM
-        loader.load(vm, hpxOut, finalStackSize); 
+        loader.load(vm, hpxOut, finalStackSize);
+        updateGUI();
     }
     
     private void reset() {
