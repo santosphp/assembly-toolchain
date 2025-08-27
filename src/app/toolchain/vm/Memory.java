@@ -121,4 +121,15 @@ public class Memory {
 	public int getCodeSegmentBaseAddress() {
 		return codeSegmentBaseAddress;
 	}
+	
+	public void setCodeSegmentBaseAddress(int codeBaseAddress) {
+		this.codeSegmentBaseAddress = codeBaseAddress;
+	}
+	
+	public void setStackMaxSize(Integer stackSize) {
+		if((stackBaseAddress + stackSize) < size)
+			this.stackMaxSize = (short) (stackSize.shortValue() - this.stackBaseAddress);
+		else
+			this.stackMaxSize = stackSize.shortValue();
+	}
 }

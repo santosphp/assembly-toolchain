@@ -86,10 +86,10 @@ public class Toolchain {
         // 3. Link
         String finalName = removeExtension(sourceFileNames.getFirst());
         String hpxOut = finalName + ".HPX";
-        linker.link(objFiles, tables, true, 0, hpxOut);
+        Integer finalStackSize = linker.link(objFiles, tables, true, 0, hpxOut);
     
         // 4. Load into VM
-        loader.load(vm, hpxOut); 
+        loader.load(vm, hpxOut, finalStackSize); 
     }
     
     private void reset() {

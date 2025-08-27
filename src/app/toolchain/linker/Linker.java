@@ -30,15 +30,20 @@ public class Linker {
         this.baseAddress = 0;
     }
 
-    public boolean link(List<String> modulos, Tables tables, boolean relocacaoFinal, int enderecoBase, String hpxOut) {
+    public Integer link(List<String> modulos, Tables tables, boolean relocacaoFinal, int enderecoBase, String hpxOut) {
         if (modulos.isEmpty()) {
             System.out.println("No modules to link!");
-            return false;
+            return 0;
         }
 
         // 1. Ler cabeçalhos e coletar informações
         for (String modulo : modulos) {
-            if (!getHeaderInfo(modulo)) return false;
+            if (!getHeaderInfo(modulo)) return 0;
+        }
+        
+        Integer finalStackSize = 0;
+        for (HeaderData header : this.modulesHeaderData) {
+        	finalStackSize += header.programStack;
         }
 
         // 2. Construir Tabela de Símbolos Global
@@ -50,7 +55,7 @@ public class Linker {
                 definitionEntry definition = symbolEntry.getValue();
                 if (globalSymbolTable.containsKey(symbolName)) {
                     System.out.println("Duplicated symbol: " + symbolName);
-                    return false;
+                    return 0;
                 }
                 globalSymbolTable.put(symbolName, new definitionEntry(definition.endereco() + currentBaseAddress, definition.modo()));
             }
@@ -62,7 +67,7 @@ public class Linker {
             for (useEntry entry : useTable) {
                 if (!globalSymbolTable.containsKey(entry.symbol())) {
                     System.out.println("Import not solved: " + entry.symbol());
-                    return false;
+                    return 0;
                 }
             }
         }
@@ -80,18 +85,18 @@ public class Linker {
 
             // Relocação local
             for (Integer offset : tables.getRelocationTables().get(i)) {
-                short finalAddress = (short) (moduleArray.get(offset) + currentBaseAddress);
+                short finalAddress = (short) (moduleArray.get(offset) + currentBaseAddress + finalStackSize);
                 moduleArray.set(offset, finalAddress);
             }
 
             // Relocação externa
             if (relocacaoFinal) {
                 for (useEntry entry : useTable) {
-                    relocateInPlace(moduleArray, entry.symbol(), entry.lc(), entry.signal(), currentBaseAddress);
+                    relocateInPlace(moduleArray, entry.symbol(), entry.lc(), entry.signal(), currentBaseAddress + finalStackSize);
                 }
             } else {
                 for (useEntry entry : useTable) {
-                    int finalOffset = currentBaseAddress + entry.lc();
+                    int finalOffset = currentBaseAddress + finalStackSize + entry.lc();
                     tables.getFinalRelocationTable().add(new relocationEntry(entry.symbol(), finalOffset));
                 }
             }
@@ -111,15 +116,16 @@ public class Linker {
                 for (Short code : this.codigoFinal) {
                     writer.println(code);
                 }
+                writer.println(relocacaoFinal? 1 : 0); // Relocação final
             }
             
             System.out.println("Arquivo HPX salvo com sucesso: " + hpxFile.getAbsolutePath());
         } catch (Exception e) {
             System.out.println("Erro ao salvar arquivo HPX: " + e.getMessage());
-            return false;
+            return 0;
         }
 
-        return true;
+        return finalStackSize;
     }
 
     public boolean getHeaderInfo(String modulo) {
@@ -174,7 +180,7 @@ public class Linker {
 
     public void relocateInPlace(List<Short> module, String symbolName, Integer addr, Sinal signal, int baseOffset) {
         int innerOffset = module.get(addr);
-        int targetAddress = this.globalSymbolTable.get(symbolName).endereco();
+        int targetAddress = this.globalSymbolTable.get(symbolName).endereco() + baseOffset;
         if (signal == Sinal.NEGATIVO) {
             module.set(addr, (short) (targetAddress - innerOffset));
         } else {
