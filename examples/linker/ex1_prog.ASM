@@ -9,6 +9,7 @@ INI	LOAD 	VAL_A     	* Carrega o valor 10
 	ADD 	VAL_C    	* Adiciona o valor externo
     	CALL 	SOMA        	* Chama a sub-rotina externa
     	STORE 	RES  		* Guarda o resultado
+	WRITE	RES
     	STOP             	* Fim da execução
 
 VAL_A	CONST 	10

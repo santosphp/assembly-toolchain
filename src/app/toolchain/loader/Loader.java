@@ -17,7 +17,7 @@ public class Loader {
         this.tables = tables;
     }
 
-    public void load(VirtualMachine vm, String hpxOut) {
+    public void load(VirtualMachine vm, String hpxOut, Integer stackSize) {
         if (vm == null || hpxOut == null) {
             throw new IllegalArgumentException("Parâmetros inválidos para Loader.");
         }
@@ -42,8 +42,11 @@ public class Loader {
         }
 
         Memory memory = vm.getCpu().getMemory(); // Use a memória já existente da VM
+        memory.setStackMaxSize(stackSize);
+        
         // Use o endereço base do segmento de código, nunca sobrescreva área reservada
-        int enderecoEficaz = memory.getCodeSegmentBaseAddress();
+        int enderecoEficaz = enderecoBase + stackSize;
+        memory.setCodeSegmentBaseAddress(enderecoEficaz);
 
         // 2. Verificar se cabe na memória
         if (enderecoEficaz + code.size() > memory.getSize()) {
