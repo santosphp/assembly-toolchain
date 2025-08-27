@@ -22,6 +22,9 @@ public class VirtualMachine {
     private Runnable onFinish;
 	private boolean running;
 	
+	private Runnable onInputRequest;
+	private boolean awaitingInput = false;
+	
 	public VirtualMachine() {
 		this.cpu = new CPU(this);
 		this.programData = new ArrayList<>();
@@ -67,8 +70,13 @@ public class VirtualMachine {
 	}
 
 	public void step() {
-		this.running = cpu.executeInstruction();
-	}
+        if (!this.running || this.awaitingInput) {
+            return;
+        }
+        this.running = cpu.executeInstruction();
+        if (!this.running) {
+        }
+    }
 	
 	public void setOutputConsumer(Consumer<String> consumer) {
 	    this.outputConsumer = consumer;
@@ -193,4 +201,25 @@ public class VirtualMachine {
 		this.running = true;
 		this.inputBuffer.clear();
 	}
+	
+	public void setOnInputRequest(Runnable r) { // método para definir o callback de input
+        this.onInputRequest = r;
+    }
+	
+	private void notifyInputRequest() { // Método para notificar a GUI que um input é necessário
+        if (onInputRequest != null) {
+            onInputRequest.run();
+        }
+    }
+	
+	public void requestInput() { // método para a CPU chamar quando precisar de input
+        this.awaitingInput = true;
+        this.running = false;
+        notifyInputRequest();
+    }
+
+    public void resume() { // método para a GUI "desbloquear" a VM
+        this.awaitingInput = false;
+        this.running = true;
+    }
 }

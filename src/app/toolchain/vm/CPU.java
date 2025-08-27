@@ -264,11 +264,14 @@ public class CPU {
 
 			// Input exception...
 			// Hold execution until inputBuffer contains something
-			while(vm.getInputBuffer().isEmpty()) {}
+			if(vm.getInputBuffer().isEmpty()) {
+				vm.requestInput();
+				return false;
+			}
 			int input = vm.readInput();
-			memory.write(currentInst.getOperand(1), (short) input);
-
-			break;
+		    memory.write(currentInst.getOperand(1), (short) input);
+		    
+		    break;
 
 		case 16: // RET
 			
