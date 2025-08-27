@@ -186,11 +186,22 @@ public class IDEPanel extends JPanel {
     	    toolchain.tick();
     	});
     	
+    	vm.setOnInputRequest(() -> {	// chamada da VM
+            controlsPanel.disableExecutionButtons();
+            ioConsolePanel.appendOutput("Input necessário.");
+            ioConsolePanel.enableInputField();
+        });
+    	
     	ioConsolePanel.setOnInputSubmitted(input -> {
     	    try {
     	    	int value = Integer.parseInt(input);
     	        vm.pushInput(value);
     	        ioConsolePanel.appendOutput("> " + input);
+    	        ioConsolePanel.disableInputField();
+    	        vm.resume();
+                toolchain.tick();
+                controlsPanel.enableExecutionButtons();
+
     	    } catch (NumberFormatException ex) {
     	        ioConsolePanel.appendOutput("Invalid input: " + input);
     	    }

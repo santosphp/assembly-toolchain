@@ -81,5 +81,17 @@ public class IOConsolePanel extends JPanel {
             }
         });
     }
+    
+
+    // Habilita o campo de entrada e dá o foco a ele.
+    public void enableInputField() {
+        inputField.setEnabled(true);
+        inputField.requestFocusInWindow();
+    }
+
+    // Desabilita o campo de entrada para impedir que o usuário digite.
+    public void disableInputField() {
+        inputField.setEnabled(false);
+    }
 
 }
