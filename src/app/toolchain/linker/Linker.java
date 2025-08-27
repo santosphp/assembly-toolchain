@@ -8,341 +8,184 @@ import app.toolchain.Tables.Sinal;
 
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Scanner;
 
-
 public class Linker {
-	
-	private record HeaderData (String baseName, Integer programSize, Integer programStack) {}
-	
-	private List<HeaderData> modulesHeaderData;
-	private Map<String, definitionEntry> globalSymbolTable;
-	private List<Short> codigoFinal;
-	private Integer baseAddress;
-	
-	public Linker()
-	{
-		this.modulesHeaderData = new ArrayList<>();
-		this.globalSymbolTable = new HashMap<>();
-		this.baseAddress = 0;
-	}
 
-	public boolean link(List<String> modulos, Tables tables, boolean relocacaoFinal, int enderecoBase, String hpxOut) {
-		/*
-		 Se modulos estiver vazio:
-			 Erro "Nenhum módulo para linkar"
-		*/
-		if(modulos.isEmpty())
-		{
-			System.out.println("No modules to link!");
-			return false;
-		}
-		
-		/*
-		// 1. Definir Bases e Símbolos Globais
-		Para cada módulo:
-			Definir onde ele começa (base offset)
-			Adicionar símbolos globais (verificar duplicados)
-		*/
-		
-		for(String modulo : modulos)
-		{
-			System.out.println("Trying to load:" + modulo);
+    private record HeaderData(String baseName, Integer programSize, Integer programStack) {}
 
-			if(!getHeaderInfo(modulo)) { return false; }
-		}
+    private List<HeaderData> modulesHeaderData;
+    private Map<String, definitionEntry> globalSymbolTable;
+    private List<Short> codigoFinal;
+    private Integer baseAddress;
 
-		Integer currentBaseAddress = 0;
-		for(int i=0; i<modulos.size(); i++)
-		{  
-			Map<String, definitionEntry> definitionTable = tables.getDefinitionTables().get(i);
-			
-            for (Map.Entry<String, definitionEntry> symbolEntry : definitionTable.entrySet())
-            {
+    public Linker() {
+        this.modulesHeaderData = new ArrayList<>();
+        this.globalSymbolTable = new HashMap<>();
+        this.baseAddress = 0;
+    }
+
+    public Integer link(List<String> modulos, Tables tables, boolean relocacaoFinal, int enderecoBase, String hpxOut) {
+        if (modulos.isEmpty()) {
+            System.out.println("No modules to link!");
+            return 0;
+        }
+
+        // 1. Ler cabeçalhos e coletar informações
+        for (String modulo : modulos) {
+            if (!getHeaderInfo(modulo)) return 0;
+        }
+        
+        Integer finalStackSize = 0;
+        for (HeaderData header : this.modulesHeaderData) {
+        	finalStackSize += header.programStack;
+        }
+
+        // 2. Construir Tabela de Símbolos Global
+        int currentBaseAddress = 0;
+        for (int i = 0; i < modulos.size(); i++) {
+            Map<String, definitionEntry> definitionTable = tables.getDefinitionTables().get(i);
+            for (Map.Entry<String, definitionEntry> symbolEntry : definitionTable.entrySet()) {
                 String symbolName = symbolEntry.getKey();
                 definitionEntry definition = symbolEntry.getValue();
-
-                if (globalSymbolTable.containsKey(symbolName))
-                {
-    	    		System.out.println("Duplicated symbol!");
-    	    		return false;
+                if (globalSymbolTable.containsKey(symbolName)) {
+                    System.out.println("Duplicated symbol: " + symbolName);
+                    return 0;
                 }
-                else
-                {
-                    globalSymbolTable.put(symbolName, new definitionEntry(definition.endereco() + currentBaseAddress, definition.modo()));
+                globalSymbolTable.put(symbolName, new definitionEntry(definition.endereco() + currentBaseAddress, definition.modo()));
+            }
+            currentBaseAddress += this.modulesHeaderData.get(i).programSize;
+        }
+
+        // 3. Verificar imports não resolvidos
+        for (List<useEntry> useTable : tables.getUseTables()) {
+            for (useEntry entry : useTable) {
+                if (!globalSymbolTable.containsKey(entry.symbol())) {
+                    System.out.println("Import not solved: " + entry.symbol());
+                    return 0;
                 }
             }
-			currentBaseAddress += this.modulesHeaderData.get(i).programSize;
-		}
-		
-		/*
-		// 2. Verificar se todos os imports são resolvidos
-		Para cada módulo:
-			Para cada símbolo importado:
-				Se símbolo não encontrado nos globais:
-					Erro "Import não resolvido"
-		*/
-		for(List<useEntry> useTable : tables.getUseTables())
-		{  
-			for (useEntry entry : useTable)
-			{
-				if (!globalSymbolTable.containsKey(entry.symbol()))
-                {
-    	    		System.out.println("Import not solved!");
-    	    		return false;
+        }
+
+        // 4. Construir código final
+        int finalSize = this.modulesHeaderData.stream().mapToInt(HeaderData::programSize).sum();
+        this.codigoFinal = new ArrayList<>(finalSize);
+
+        currentBaseAddress = 0;
+        for (int i = 0; i < modulos.size(); i++) {
+            int moduleSize = this.modulesHeaderData.get(i).programSize;
+            List<Short> moduleArray = getModuleArray(modulos.get(i), moduleSize);
+
+            List<useEntry> useTable = tables.getUseTables().get(i);
+
+            // Relocação local
+            for (Integer offset : tables.getRelocationTables().get(i)) {
+                short finalAddress = (short) (moduleArray.get(offset) + currentBaseAddress + finalStackSize);
+                moduleArray.set(offset, finalAddress);
+            }
+
+            // Relocação externa
+            if (relocacaoFinal) {
+                for (useEntry entry : useTable) {
+                    relocateInPlace(moduleArray, entry.symbol(), entry.lc(), entry.signal(), currentBaseAddress + finalStackSize);
                 }
-			}
-		}
-		
-		/*
-		// 3. Construir Código Final + Tabela de Símbolos + Relocações
-		Inicializar array CodigoFinal com tamanho total dos módulos
-		Para cada módulo:
-			Se relocacaoFinal for verdadeira:
-				Para cada registro de relocação:
-					Chamar relocateInPlace (corrige endereços diretamente no código)
-			Senão:
-				Guardar relocations para o Loader resolver depois
-			Copiar bytes do módulo para o CodigoFinal
-			Ajustar símbolos para refletirem a posição real no CodigoFinal
-		*/
-		Integer finalSize = 0;
-		for(HeaderData data : this.modulesHeaderData)
-		{
-			finalSize += data.programSize;
-		}
-		this.codigoFinal = new ArrayList<>(finalSize);
+            } else {
+                for (useEntry entry : useTable) {
+                    int finalOffset = currentBaseAddress + finalStackSize + entry.lc();
+                    tables.getFinalRelocationTable().add(new relocationEntry(entry.symbol(), finalOffset));
+                }
+            }
 
-		currentBaseAddress = 0;
-		for(int i=0; i<modulos.size(); i++)
-		{	
-			int moduleSize = this.modulesHeaderData.get(i).programSize;
-			List<Short> moduleArray = getModuleArray(modulos.get(i), moduleSize);
-			
-			List<useEntry> useTable = tables.getUseTables().get(i);
-			
-			// Corrige endereços LOCAIS usando relocationTable
-			for (Integer offset : tables.getRelocationTables().get(i)) {
+            // Copiar bytes para o código final
+            this.codigoFinal.addAll(moduleArray);
+            currentBaseAddress += moduleSize;
+        }
 
-		        short finalAddress = (short) (moduleArray.get(offset) + currentBaseAddress);
-		        
-		        moduleArray.set(offset, finalAddress);
-		    }
-			
-			// Corrigir endereços EXTERNOS usando a useTable
-			if(relocacaoFinal)
-			{
-				for (useEntry entry : useTable)
-				{
-	                relocateInPlace(moduleArray, entry.symbol(), entry.lc(), entry.signal(), currentBaseAddress);
-				}
-			}
-			else
-			{
-				// Guardar relocations para o Loader resolver depois
-				for (useEntry entry : useTable)
-				{
-					// Calcula o endereço absoluto no código final
-	                int finalOffset = currentBaseAddress + entry.lc();
-	                
-	                // Adiciona o registro à tabela de relocação final
-	                tables.getFinalRelocationTable().add(new relocationEntry(entry.symbol(), finalOffset));
-				}
-			}
+        this.baseAddress = relocacaoFinal ? enderecoBase : 0;
 
-			// Copiar bytes do módulo para o CodigoFinal
-			for(Short value : moduleArray)
-			{
-				this.codigoFinal.add(value);
-			}
-			
-			// Ajustar símbolos para refletirem a posição real no CodigoFinal
-			/* Já foi ajustado nesse ponto */
-			
-			// Atualiza o endereço base para o próximo modulo
-			currentBaseAddress += moduleSize;
-		}
-		
-		/*
-		// 4. Determinar Endereço de Início
- 		Se relocacaoFinal for verdadeira:
- 			EnderecoInicio = enderecoBase
- 		Senão:
- 			EnderecoInicio = endereço inicial do primeiro módulo
-		 */
-		this.baseAddress = relocacaoFinal ? enderecoBase : 0;
-		
-		
-		/*
-		// 5. Combinar Fontes (opcional para debug)
-		Juntar os fontes dos módulos para futura depuração
-		*/
-		StringBuilder combinedSources = new StringBuilder();
-		for (String modulo : modulos) {
-			try (Scanner reader = new Scanner(new File(modulo))) {
-				while (reader.hasNextLine()) {
-					combinedSources.append(reader.nextLine()).append("\n");
-				}
-			} catch (FileNotFoundException e) {
-				System.out.println("Could not read source for debug combination: " + modulo);
-			}
-		}
+        // 5. Salvar arquivo .HPX
+        try {
+            File hpxFile = new File(hpxOut);
+            try (PrintWriter writer = new PrintWriter(hpxFile)) {
+                writer.println(this.baseAddress); // Endereço inicial
+                for (Short code : this.codigoFinal) {
+                    writer.println(code);
+                }
+                writer.println(relocacaoFinal? 1 : 0); // Relocação final
+            }
+            
+            System.out.println("Arquivo HPX salvo com sucesso: " + hpxFile.getAbsolutePath());
+        } catch (Exception e) {
+            System.out.println("Erro ao salvar arquivo HPX: " + e.getMessage());
+            return 0;
+        }
 
-		/*
-		// 6. Criar Objeto Final
-		Criar um arquivo objeto com:
-		- EnderecoInicio
-		- CodigoFinal
-		- Tabela de Símbolos ajustada
-		- Registros de relocação (se relocacaoFinal = falso)
-		*/
-		StringBuilder objetoFinal = new StringBuilder();
+        return finalStackSize;
+    }
 
-		objetoFinal.append(this.baseAddress).append("\n");
+    public boolean getHeaderInfo(String modulo) {
+        try {
+            String filePath = modulo;
+            File myObj = new File(filePath);
+            Scanner myReader = new Scanner(myObj);
 
-		for (int codigo : codigoFinal) {
-		    objetoFinal.append(codigo).append("\n");
-		}
+            if (myReader.hasNextLine()) {
+                String header = myReader.nextLine();
+                if (header.matches("^H\\s+\\S+\\s+\\d+\\s+\\d+\\s*$")) {
+                    Scanner lineScanner = new Scanner(header);
+                    lineScanner.next();
+                    String baseName = lineScanner.next().trim();
+                    int programSize = lineScanner.nextInt();
+                    int programStack = lineScanner.nextInt();
+                    modulesHeaderData.add(new HeaderData(baseName, programSize, programStack));
+                    lineScanner.close();
+                } else {
+                    System.out.println("Could not find header in module: " + modulo);
+                    myReader.close();
+                    return false;
+                }
+            }
+            myReader.close();
+        } catch (FileNotFoundException e) {
+            System.out.println("Module file not found: " + modulo);
+            return false;
+        }
+        return true;
+    }
 
-		objetoFinal.append(relocacaoFinal ? 1 : 0).append("\n");
+    public List<Short> getModuleArray(String module, Integer size) {
+        List<Short> moduleArray = new ArrayList<>(size);
+        String filePath = module;
 
-		/*
-		// 7. Salvar arquivos (.obj e .meta)
-		Escrever arquivo .obj (formato textual)
-		Escrever arquivo .meta (formato binário)
-		*/
-		try {
-			// Salva .obj como texto
-			File objFile = new File("files/" + hpxOut + ".obj");
-			java.io.FileWriter writerObj = new java.io.FileWriter(objFile);
-			writerObj.write(objetoFinal.toString());
-			writerObj.close();
+        try (Scanner myReader = new Scanner(new File(filePath))) {
+            if (myReader.hasNextLine()) myReader.nextLine(); // Ignora header
+            while (myReader.hasNext()) {
+                if (myReader.hasNextInt()) {
+                    moduleArray.add((short) myReader.nextInt());
+                } else {
+                    myReader.next();
+                }
+            }
+        } catch (FileNotFoundException e) {
+            System.out.println("Module file not found: " + filePath);
+        }
 
-			// Salva .meta como binário
-			File metaFile = new File("files/" + hpxOut + ".meta");
-			try (java.io.DataOutputStream dos = new java.io.DataOutputStream(new java.io.FileOutputStream(metaFile))) {
-			    for (Short code : this.codigoFinal) {
-			        dos.writeShort(code); // writeShort escreve 2 bytes (16 bits)
-			    }
-			}
+        return moduleArray;
+    }
 
-			System.out.println("Arquivos salvos com sucesso: " + "files/" + hpxOut + ".obj e " + "files/" + hpxOut + ".meta");
-		} catch (Exception e) {
-			System.out.println("Erro ao salvar arquivos finais: " + e.getMessage());
-		}
-		
-		return true;
-	}
-	
-	public boolean getHeaderInfo(String modulo)
-	{
-		try {
-	    	String filePath = "files/object/" + modulo + ".OBJ";
-			System.out.println("Loading from file: " + filePath);
-			File myObj = new File(filePath);
-		    Scanner myReader = new Scanner(myObj);
-		    
-		    // Pegar o cabeçalho
-		    if(myReader.hasNextLine())
-		    {
-		    	String header = myReader.nextLine();
-		    	System.out.println(header);
-		    	
-		    	if(header.matches("^H\\s+\\S+\\s+\\d+\\s+\\d+\\s+$"))
-		    	{
-		    		Scanner lineScanner = new Scanner(header);
-
-	                try {
-	                    // Ignora H
-	                    lineScanner.next();
-
-	                    // Ler os tokens em ordem
-	                    String baseName = lineScanner.next().trim();
-	                    int programSize = lineScanner.nextInt();
-	                    int programStack = lineScanner.nextInt();
-	                    
-	                    // Salvas o cabeçalho desse módulo
-	                    modulesHeaderData.add(new HeaderData(baseName, programSize, programStack));
-
-	                } catch (Exception e) {
-	                    System.out.println("Error extracting header data: " + e.getMessage());
-	                } finally {
-	                    lineScanner.close();
-	                }
-		    	}
-		    	else
-		    	{
-		    		System.out.println("Could not find " + modulo + " header.");
-				    myReader.close();
-				    return false;
-		    	}
-		    }
-		    
-		    myReader.close();
-		} catch (FileNotFoundException e) {
-		    System.out.println("An error occurred fetching the instructions.");
-		    e.printStackTrace();
-		}
-		return true;
-	}
-	
-	public List<Short> getModuleArray(String module, Integer size)
-	{
-		List<Short> moduleArray = new ArrayList<>(size);
-		
-		System.out.println("Trying to load from:" + module);
-
-		try {
-	    	String filePath = "files/object/" + module + ".OBJ";
-			System.out.println("Loading from file: " + filePath);
-			File myObj = new File(filePath);
-		    Scanner myReader = new Scanner(myObj);
-
-	    	// Ignores the header
-		    if(myReader.hasNextLine())
-		    {
-		    	myReader.nextLine();
-		    }
-		    
-		    while (myReader.hasNext()) {
-		        try {
-		            if (myReader.hasNextInt()) {
-		                int data = myReader.nextInt();
-		                // System.out.println(data);
-		                moduleArray.add((short) data);
-		            } else {
-		                myReader.next();
-		            }
-		        } catch (Exception e) {
-		            e.printStackTrace();
-		        }
-		    }
-		    myReader.close();
-		  } catch (FileNotFoundException e) {
-		    System.out.println("An error occurred fetching the instructions.");
-		    e.printStackTrace();
-		 }
-		
-		return moduleArray;
-	}
-	
-	public void relocateInPlace(List<Short> module, String symbolName, Integer addr, Sinal signal, int baseOffset)
-	{
-		// corrige endereços diretamente no código
-		int innerOffset = module.get(addr);
-		
-		if(signal == Sinal.NEGATIVO)
-		{
-			module.set(addr, (short) (this.globalSymbolTable.get(symbolName).endereco() - innerOffset));
-		}
-		else
-		{
-			module.set(addr, (short) (this.globalSymbolTable.get(symbolName).endereco() + innerOffset));
-		}
-	}
+    public void relocateInPlace(List<Short> module, String symbolName, Integer addr, Sinal signal, int baseOffset) {
+        int innerOffset = module.get(addr);
+        int targetAddress = this.globalSymbolTable.get(symbolName).endereco() + baseOffset;
+        if (signal == Sinal.NEGATIVO) {
+            module.set(addr, (short) (targetAddress - innerOffset));
+        } else {
+            module.set(addr, (short) (targetAddress + innerOffset));
+        }
+    }
 
 }

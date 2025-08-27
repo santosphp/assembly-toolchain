@@ -220,15 +220,13 @@ public class Assembler {
 			{
 				InstrDef def = instrSet.get(sl.opcode);
 
-				System.out.println(lc + " " + sl.opcode + " " + sl.op1 + " " + sl.op2 + " " + def.size);
-
-				// Syntax ERROR
-				if (identifyOperendsError(sl, def)) {
-					markError("Erro de sintaxe: Falta ou excesso de operandos em instruções, ou labels mal formados.");
-					return true;
-				}
-
 				if (def != null) {
+					// Syntax ERROR
+					if (identifyOperendsError(sl, def)) {
+						markError("Erro de sintaxe: Falta ou excesso de operandos em instruções, ou labels mal formados.");
+						return true;
+					}
+					
 					// Add label to symbol table
 					if (sl.label != null && !sl.label.isBlank()) {
 						// Redefinition ERROR
@@ -252,6 +250,7 @@ public class Assembler {
 							+ "} não corresponde a nenhuma instrução do computador.");
 					return true;
 				}
+				System.out.println(lc + " " + sl.opcode + " " + sl.op1 + " " + sl.op2 + " " + def.size);
 			}
 		}
 		if (!hasEndDirective) {
