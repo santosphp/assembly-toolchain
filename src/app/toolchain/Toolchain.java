@@ -12,9 +12,9 @@ import app.toolchain.vm.VirtualMachine;
 
 public class Toolchain {
     private final MacroProcessor macroProcessor;
-    private final Assembler assembler;
-    private final Linker linker;
-    private final Loader loader;
+    private Assembler assembler;
+    private Linker linker;
+    private Loader loader;
     private final VirtualMachine vm;
     
     private Tables tables;
@@ -95,6 +95,10 @@ public class Toolchain {
     
     private void reset() {
     	vm.reset();
+    	this.tables = new Tables();
+    	this.loader = new Loader(tables);
+    	this.assembler = new Assembler();
+    	this.linker = new Linker();
 	  }
 
     // Test Method for assembler and linker
