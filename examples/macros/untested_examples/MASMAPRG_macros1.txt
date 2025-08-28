@@ -1,0 +1,9 @@
+START
+A DC '90'
+CNOP 0,4
+BAL 1,*+8
+Dc A(A)
+L 15, =V(COS)
+BALR 14,15
+ST 1, LOOP
+END

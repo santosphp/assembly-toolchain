@@ -53,7 +53,20 @@ public class ControlsPanel extends JPanel {
     }
 	
 	public void setNextInstruction(String instruction) {
-        nextInstructionLabel.setText("Next instruction: " + instruction);
+		int maxLength = 31;	// Menor quantidade de caracteres de uma instruction
+	    StringBuilder htmlInstruction = new StringBuilder("<html>Next instruction: ");		
+	    for (int i = 0; i < instruction.length(); i += maxLength) {
+	        // Adiciona um bloco de 50 caracteres ou o que sobrar
+	        int end = Math.min(i + maxLength, instruction.length());
+	        htmlInstruction.append(instruction.substring(i, end));
+	        // Se ainda houver mais texto, adiciona uma quebra de linha HTML
+	        if (end < instruction.length()) {
+	            htmlInstruction.append("<br>");
+	        }
+	    }
+	    htmlInstruction.append("</html>");
+	    nextInstructionLabel.setText(htmlInstruction.toString());
+        //nextInstructionLabel.setText("Next instruction: " + instruction);
     }
 	
 	public void disableExecutionButtons() {
