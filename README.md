@@ -30,6 +30,7 @@ src/
         │   └── Loader.java
         ├── macro
         │   └── MacroProcessor.java
+        ├── Tables.java
         ├── Toolchain.java
         └── vm
             ├── CPU.java
